@@ -8,6 +8,7 @@ Breve descrição do que o seu projeto faz.
 ## :technologist: Membros da equipe
 
 Matrícula, nome e curso dos participantes.
+
 548317 - Heric da Silva Cruz - Ciência da Computação
 
 ## :bulb: Objetivo Geral
