@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Florida</string>
+    <string name="initial_setup">Configuração Inicial</string>
+    <string name="name">Nome</string>
+    <string name="document">Documento (CPF/CNPJ)</string>
+    <string name="select_image">Selecionar imagem</string>
+    <string name="image_selected">Imagem selecionada</string>
+    <string name="no_image">Nenhuma imagem</string>
+    <string name="continue_button">Continuar</string>
+    <string name="logout">Sair</string>
+    <string name="home">Home</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="settings">Configurações</string>
+    <string name="welcome">Bem-vindo!</string>
+    <string name="sucessfull_setup">"Seu perfil foi configurado com sucesso."</string>
+</resources>
