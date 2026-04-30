@@ -3,8 +3,10 @@ package com.example.florida.ui.AppNavigation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -15,10 +17,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,6 +34,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.florida.R
 import com.example.florida.ui.budget.BudgetScreen
 import com.example.florida.ui.client.ClientScreen
+import com.example.florida.ui.client.CreateClientDialog
 import com.example.florida.ui.home.HomeScreen
 import com.example.florida.ui.receipt.ReceiptScreen
 import com.example.florida.ui.settings.SettingsScreen
@@ -34,9 +43,19 @@ import com.example.florida.ui.settings.SettingsScreen
 fun AppNavigator(
     navController: NavHostController
 ) {
+    val context = LocalContext.current
+    val appViewModel: AppNavigatorViewModel = viewModel(
+        factory = AppNavigatorViewModel.factory(context)
+    )
     val navActions = NavigationActions(navController)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var showCreateClientDialog by remember { mutableStateOf(false) }
+    var showCreateBudgetDialog by remember { mutableStateOf(false) }
+    var showCreateReceiptDialog by remember { mutableStateOf(false) }
+    val clients by appViewModel.clients.collectAsState()
+    val budgets by appViewModel.budgets.collectAsState()
+    val receipts by appViewModel.receipts.collectAsState()
 
     val showBottomBar = currentRoute in listOf(
         Route.Home.route,
@@ -79,8 +98,20 @@ fun AppNavigator(
             }
         },
         floatingActionButton = {
-            if (showBottomBar) {
-
+            if (showActionButton) {
+                ActionButton(
+                    currentRoute = currentRoute,
+                    onClick = {
+                        when (currentRoute) {
+                            Route.Client.route -> {
+                                showCreateClientDialog = true
+                            }
+                            Route.Budget.route -> showCreateBudgetDialog = true
+                            Route.Receipt.route -> showCreateReceiptDialog = true
+                            else -> {  }
+                        }
+                    }
+                )
             }
         }
     ) { innerPadding ->
@@ -90,24 +121,94 @@ fun AppNavigator(
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Route.Home.route) {
-                HomeScreen()
+                HomeScreen(
+                    clients = clients,
+                    budgets = budgets,
+                    receipts = receipts,
+                    onOpenClients = { navActions.navigateToClient() },
+                    onOpenBudgets = { navActions.navigateTobudget() },
+                    onOpenReceipts = { navActions.navigateToReceipt() },
+                    onCreateBudget = {
+                        showCreateBudgetDialog = true
+                        navActions.navigateTobudget()
+                    },
+                    onCreateReceipt = {
+                        showCreateReceiptDialog = true
+                        navActions.navigateToReceipt()
+                    }
+                )
             }
             composable(Route.Budget.route) {
-                BudgetScreen()
+                BudgetScreen(
+                    budgets = budgets,
+                    clients = clients,
+                    showCreateDialog = showCreateBudgetDialog,
+                    onDismissCreateDialog = { showCreateBudgetDialog = false },
+                    onCreateBudget = { clientId, notes, validade, entrega, items ->
+                        appViewModel.createBudget(
+                            clientId = clientId,
+                            notes = notes,
+                            validade = validade,
+                            entrega = entrega,
+                            items = items,
+                            onSaved = {
+                            showCreateBudgetDialog = false
+                            }
+                        )
+                    },
+                    onDeleteBudget = { budget ->
+                        appViewModel.deleteBudget(budget.id)
+                    }
+                )
             }
             composable(Route.Settings.route) {
                 SettingsScreen()
             }
             composable(Route.Client.route) {
-                ClientScreen()
+                ClientScreen(
+                    clients = clients,
+                    onDeleteClick = { client ->
+                        appViewModel.deleteClient(client)
+                    }
+                )
             }
             composable(Route.Receipt.route) {
-                ReceiptScreen()
-            }
-            composable(Route.Receipt.route){
-                ReceiptScreen()
+                ReceiptScreen(
+                    receipts = receipts,
+                    clients = clients,
+                    showCreateDialog = showCreateReceiptDialog,
+                    onDismissCreateDialog = { showCreateReceiptDialog = false },
+                    onCreateReceipt = { clientId, items ->
+                        appViewModel.createReceipt(
+                            clientId = clientId,
+                            items = items,
+                            onSaved = {
+                            showCreateReceiptDialog = false
+                            }
+                        )
+                    },
+                    onDeleteReceipt = { receipt ->
+                        appViewModel.deleteReceipt(receipt.id)
+                    }
+                )
             }
         }
+    }
+
+    if (showCreateClientDialog) {
+        CreateClientDialog(
+            onDismiss = { showCreateClientDialog = false },
+            onConfirm = { name, document, phone, address, imagePath ->
+                appViewModel.createClient(
+                    name = name,
+                    document = document,
+                    phone = phone,
+                    address = address,
+                    imagePath = imagePath
+                )
+                    showCreateClientDialog = false
+            }
+        )
     }
 }
 
@@ -124,11 +225,12 @@ fun AppTopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimary
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         navigationIcon = {
@@ -178,9 +280,18 @@ fun AppBottomBar(
 @Composable
 fun ActionButton(
     currentRoute: String?,
-    // criar um meio de o butão do scarfolld chamar a criação de um novo orçamento ou recibo ou cliente.
-
+    onClick: () -> Unit
 ) {
+    FloatingActionButton(
+        onClick = onClick,
+        containerColor = MaterialTheme.colorScheme.onSecondaryContainer
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            contentDescription = stringResource(R.string.add)
+        )
+    }
 }
 
 @Composable

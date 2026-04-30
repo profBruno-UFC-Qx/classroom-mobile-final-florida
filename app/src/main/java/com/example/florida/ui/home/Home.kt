@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,7 +31,7 @@ fun MainApp() {
             SplashScreen()
         }
         SessionManager.SessionState.NoUser -> {
-            OnboardingScreen()
+            OnboardingScreen( )
         }
         is SessionManager.SessionState.Logged -> {
             AppWithNavigation()
@@ -86,11 +87,14 @@ fun UserProfileCard(user: UserSetup?) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            user?.imagePath.let {
+            user?.imagePath?.let { imagePath ->
+                val bitmap = BitmapFactory.decodeFile(imagePath)
+                if (bitmap != null) {
                 Image(
-                    bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(user?.imagePath ), 100, 100, true).asImageBitmap(),
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, true).asImageBitmap(),
                     contentDescription = null,
                 )
+                }
             }
         }
     }

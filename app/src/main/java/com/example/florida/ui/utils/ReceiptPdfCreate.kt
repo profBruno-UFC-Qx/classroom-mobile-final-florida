@@ -42,7 +42,9 @@ fun ReceiptPdfCreate(
     val contentWidth = pageWidth - marginLeft - marginRight
 
     // Pre-scale images once
-    val logoScaled = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(user.imagePath), 160, 80, true)
+    val logoScaled = user.imagePath
+        ?.let { BitmapFactory.decodeFile(it) }
+        ?.let { Bitmap.createScaledBitmap(it, 160, 80, true) }
 
     val dateToShow = dateStr ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
@@ -78,11 +80,11 @@ fun ReceiptPdfCreate(
 
         if (isFirstPage) {
             // Logo left
-            canvas.drawBitmap(logoScaled, marginLeft.toFloat(), topY.toFloat(), null)
+            logoScaled?.let { canvas.drawBitmap(it, marginLeft.toFloat(), topY.toFloat(), null) }
 
             // Big title top-right
             val titleX = marginLeft + contentWidth - 180
-            canvas.drawText("ORÇAMENTO", titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
+            canvas.drawText("RECIBO", titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
 
             // Budget number and date under title
             val labelX = titleX.toFloat()
@@ -95,10 +97,10 @@ fun ReceiptPdfCreate(
 
             // Left: Contratado
 
-            canvas.drawText("CONTRATANTE: Francisco Odenio Silva Nunes", marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
-            canvas.drawText("CPF: 938.610.953-00", marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
-            canvas.drawText("ENDEREÇO: Matinho Dativo, n 112, Maravilha", marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
-            canvas.drawText("CONTATO: (88) 92157-0778", marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
+            canvas.drawText("CONTRATANTE: ${user.name}", marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
+            canvas.drawText("CPF: ${user.document.cpfCnpjTranformer()}", marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
+            canvas.drawText("ENDEREÇO: ${user.street}, ${user.number}, ${user.city}", marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
+            canvas.drawText("CONTATO: ${user.phone.phoneTranformer()}", marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
 
 
             // Vertical separator
@@ -210,7 +212,7 @@ fun ReceiptPdfCreate(
 
     pdf.finishPage(page)
 
-    val outFile = File(context.cacheDir, "orcamento.pdf")
+    val outFile = File(context.cacheDir, "recibo.pdf")
     outFile.outputStream().use { pdf.writeTo(it) }
     pdf.close()
 

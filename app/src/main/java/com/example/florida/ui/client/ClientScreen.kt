@@ -25,14 +25,10 @@ import com.example.florida.model.Client
 
 @Composable
 fun ClientScreen(
+    clients: List<Client>,
+    onDeleteClick: (Client) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var showCreateClientDialog by remember { mutableStateOf(false) }
-    val clients = remember {
-        mutableStateListOf(
-            Client(name = "Francisco", address = "Rua dos Bobos", document = "06364254307", phone = "123456789", imagePath = null),
-        )
-    }
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -41,20 +37,10 @@ fun ClientScreen(
         LazyColumn(
             modifier = modifier.fillMaxSize(),
         ) {
-            item {
-                Button(
-                    onClick = { showCreateClientDialog = true },
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text(stringResource(R.string.new_client))
-                }
-            }
             items(clients) { client ->
                 ClientCard(
                     client,
-                    onDelete = {
-                        clients.remove(client)
-                    },
+                    onDelete = { onDeleteClick(client) },
                     onClicked = { },
                     onClickBudget = { },
                     onClickReceipt = { },
@@ -64,19 +50,5 @@ fun ClientScreen(
                 )
             }
         }
-
-
-    }
-
-    if (showCreateClientDialog) {
-        CreateClientDialog(
-            onDismiss = { showCreateClientDialog = false },
-            onConfirm = { name, document, phone, address, imagePath ->
-                clients.add(
-                    Client(name, address, document, phone, imagePath)
-                )
-                showCreateClientDialog = false
-            }
-        )
     }
 }

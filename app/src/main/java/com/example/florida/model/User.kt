@@ -10,4 +10,7 @@ data class UserSetup(
     val state: String = "SP",
     val phone: String = "11999999999",
     val imagePath: String? = null,
-)
+) {
+    val address: String
+        get() = "$street, $number, $neighborhood, $city - $state"
+}

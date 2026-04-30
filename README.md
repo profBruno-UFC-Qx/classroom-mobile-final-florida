@@ -1,16 +1,7 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/AR7CADm8)
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=23306246)
 # :checkered_flag: Sistema Mobile de Gestão de Orçamentos e Recibos
 
 > Aplicativo Android para digitalização e gerenciamento de orçamentos e recibos, com geração de PDF e armazenamento local.
 
-## :technologist: Membros da equipe
-
-| Matrícula | Nome | Curso |
-|-----------|------|-------|
-| 548317 | Heric da Silva | Ciência da Computação |
-| 497357 | Francisco Gabriel | Sistemas de Informação |
- 
 
 ## :bulb: Objetivo Geral
 Desenvolver um aplicativo mobile para a plataforma Android, utilizando **Kotlin**, que permita o cadastro de clientes e o gerenciamento completo de orçamentos e recibos, com exportação de documentos em formato **PDF** e armazenamento local dos dados no dispositivo do usuário — funcionando totalmente offline.
@@ -46,24 +37,57 @@ Com a digitalização do processo de criação de orçamentos e recibos, espera-
 | 🔍 Listagem e Busca | Visualizar e filtrar registros cadastrados |
 | ✏️ Edição e Exclusão | Gerenciar e atualizar todos os dados cadastrados | 
 
----
-
-> [!WARNING]
-> Daqui em diante o README.md só deve ser preenchido no momento da entrega final.
 
 ##  Tecnologias: 
 Liste aqui as tecnologias e bibliotecas que foram utilizadas no projeto.
 
----
+Essa é a ideia inicial do projeto. o que eu quero que vc faça é continuar esse trabalho sabendo que 
 
-## Instruções para Execução
-[Inclua instruções claras sobre como rodar o projeto localmente. Isso é crucial para que você possa testá-lo nas próximas entregas. **Somente caso haja alguma coisa diferente do usual**
+budget vai ter: 
 
-```bash
-# Clone o repositório
-git clone [https://docs.github.com/pt/repositories/creating-and-managing-repositories/about-repositories](https://docs.github.com/pt/repositories/creating-and-managing-repositories/about-repositories)
+data class BudgetEntity(// vc pode adicionar algum dado que achar enteressante
+    val id: Long = 0,
+    val clientId: Long?,
+    val notes: String?,
+    val validade: String?,
+    val entrega: String?,
+    val createdAt: LocalDateTime,
+    val updateAt: LocalDateTime,
+    val total: Double
+)
+receipt vai ter: 
+// vc pode adicionar algum dado que achar enteressante
+data class ReceiptEntity(
+    val id: Long = 0,
 
-# Navegue para o diretório
-cd [nome-do-repositorio]
+    val clientId: Long?,
+    val total: Double,
+    val date: LocalDateTime,
+    val createdAt: LocalDateTime
+)
 
-# Siga as instruções específicas para a sua tecnologia...
+client vai ter: 
+
+data class ClientEntity(// vc pode adicionar algum dado que achar enteressante
+    val id: Long = 0,
+
+    val name: String,
+    val address: String,
+    val document: String,
+    val phone: String,
+    val deleted: Boolean = false,
+)
+
+userSetup vai ter: 
+
+data class UserSetup( // vc pode adicionar algum dado que achar enteressante
+    val name: String,
+    val document: String,
+    val address: String
+    val phone: String,
+    val imagePath: String? = null,
+)
+
+e sabendo que tanto o orçamento quanto o recibo pode ter uma lista de itens quero que vc faça a continuação da implementação nesse projeto utilizando as boas praticas de probramaçaõ mobile.
+
+as funções de criar os pdfs ja estão prontas. 

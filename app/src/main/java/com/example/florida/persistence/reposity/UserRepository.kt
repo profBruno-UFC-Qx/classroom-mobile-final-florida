@@ -64,6 +64,12 @@ class UserRepository(private val userDao: UserDao) {
         return UserSetup(
             name = this.name,
             document = this.document,
+            street = this.street,
+            number = this.number,
+            neighborhood = this.neighborhood,
+            city = this.city,
+            state = this.state,
+            phone = this.phone,
             imagePath = this.imagePath
         )
     }
@@ -73,6 +79,12 @@ class UserRepository(private val userDao: UserDao) {
             id = 1,
             name = this.name,
             document = this.document,
+            street = this.street,
+            number = this.number,
+            neighborhood = this.neighborhood,
+            city = this.city,
+            state = this.state,
+            phone = this.phone,
             imagePath = this.imagePath,
             updatedAt = System.currentTimeMillis()
         )

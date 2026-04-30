@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.room.TypeConverter
 import java.io.ByteArrayOutputStream
+import java.time.LocalDateTime
 
 class Converters {
     @TypeConverter
@@ -29,5 +30,15 @@ class Converters {
     @TypeConverter
     fun fromStringToUri(uri: String?): Uri? {
         return if (uri == null) null else Uri.parse(uri)
+    }
+
+    @TypeConverter
+    fun fromLocalDateTime(value: LocalDateTime?): String? {
+        return value?.toString()
+    }
+
+    @TypeConverter
+    fun toLocalDateTime(value: String?): LocalDateTime? {
+        return value?.let { LocalDateTime.parse(it) }
     }
 }

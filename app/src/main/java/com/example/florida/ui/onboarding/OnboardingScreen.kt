@@ -6,16 +6,21 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,6 +58,12 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
     var name by remember { mutableStateOf("") }
     var document by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var street by remember { mutableStateOf("") }
+    var number by remember { mutableStateOf("") }
+    var neighborhood by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var state by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -65,10 +76,13 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
     val bitmapState = rememberBitmapFromUri(imageUri)
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -107,10 +121,76 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             isError = errorMessage != null && document.isBlank()
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = phone,
+            onValueChange = {
+                phone = it
+                errorMessage = null
+            },
+            label = { Text(stringResource(id = R.string.phone)) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = street,
+            onValueChange = {
+                street = it
+                errorMessage = null
+            },
+            label = { Text(stringResource(id = R.string.address)) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = number,
+            onValueChange = { number = it },
+            label = { Text("Número") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = neighborhood,
+            onValueChange = { neighborhood = it },
+            label = { Text("Bairro") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = city,
+                onValueChange = { city = it },
+                label = { Text("Cidade") },
+                modifier = Modifier.weight(1f),
+                singleLine = true
+            )
+            OutlinedTextField(
+                value = state,
+                onValueChange = { state = it.take(2).uppercase() },
+                label = { Text("UF") },
+                modifier = Modifier.weight(0.4f),
+                singleLine = true
+            )
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = { launcher.launch("image/*") },
+            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.inverseOnSurface),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(id = R.string.select_image))
@@ -189,6 +269,12 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         val userSetup = UserSetup(
                             name = name,
                             document = document,
+                            street = street,
+                            number = number,
+                            neighborhood = neighborhood,
+                            city = city,
+                            state = state,
+                            phone = phone,
                             imagePath = imagePath
                         )
                         // SessionManager.saveUser já persiste no banco
@@ -201,13 +287,14 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onSecondary),
+            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.inverseOnSurface),
             enabled = !isLoading
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     strokeWidth = 2.dp
                 )
             } else {

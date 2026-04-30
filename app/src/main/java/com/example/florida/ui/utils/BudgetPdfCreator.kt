@@ -44,7 +44,9 @@ fun BudgetPdfCreator(
     val marginRight = 40
     val contentWidth = pageWidth - marginLeft - marginRight
 
-    val logoScaled = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(user.imagePath), 160, 80, true)
+    val logoScaled = user.imagePath
+        ?.let { BitmapFactory.decodeFile(it) }
+        ?.let { Bitmap.createScaledBitmap(it, 160, 80, true) }
 
     val dateToShow = date?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
     var pageNumber = 1
@@ -81,7 +83,7 @@ fun BudgetPdfCreator(
         var topY = 40
 
         if (isFirstPage) {
-            canvas.drawBitmap(logoScaled, marginLeft.toFloat(), topY.toFloat(), null)
+            logoScaled?.let { canvas.drawBitmap(it, marginLeft.toFloat(), topY.toFloat(), null) }
 
             val titleX = marginLeft + contentWidth - 180
             canvas.drawText("ORÇAMENTO", titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)

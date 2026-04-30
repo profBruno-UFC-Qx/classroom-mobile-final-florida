@@ -94,7 +94,7 @@ fun ClientCard(
             CardHeader(
                 name = client.name,
                 document = client.document,
-                onDeleteClick = { onDelete() }
+                onDeleteClick = { showConfirm = true }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
