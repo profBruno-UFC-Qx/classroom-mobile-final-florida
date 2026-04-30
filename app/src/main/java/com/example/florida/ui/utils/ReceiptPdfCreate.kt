@@ -19,37 +19,35 @@ import com.example.florida.extencions.cpfCnpjTranformer
 import com.example.florida.extencions.formatForBrl
 import com.example.florida.extencions.phoneTranformer
 import com.example.florida.model.Client
-import com.example.florida.model.UserSetup
 import com.example.florida.model.Item
+import com.example.florida.model.UserSetup
 import java.io.File
 import java.time.LocalDate
-import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
-fun BudgetPdfCreator(
+fun ReceiptPdfCreate(
+    context: Context,
     user: UserSetup,
-    client: Client?,
+    cliente: Client?,
     itens: List<Item>,
-    observasion: String,
-    date: OffsetDateTime?,
-    budgetNumber: String?,
-    prazo: String?,
-    validade: String?,
-    context: Context
-): File{
+    budgetNumber: Int? = null,
+    dateStr: String? = null
+): File {
     val pdf = PdfDocument()
+
     val pageWidth = 595
     val pageHeight = 842
     val marginLeft = 40
     val marginRight = 40
     val contentWidth = pageWidth - marginLeft - marginRight
 
+    // Pre-scale images once
     val logoScaled = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(user.imagePath), 160, 80, true)
 
-    val dateToShow = date?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    val dateToShow = dateStr ?: LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+
     var pageNumber = 1
     var y = 0
-
 
     fun drawTableHeader(canvas: Canvas, startY: Int): Int {
         val headerHeight = 28
@@ -71,9 +69,7 @@ fun BudgetPdfCreator(
         return startY + headerHeight + 8
     }
 
-    fun newPage(
-        isFirstPage: Boolean
-    ): Pair<PdfDocument.Page, Canvas>{
+    fun novaPagina(isFirstPage: Boolean): Pair<PdfDocument.Page, Canvas> {
         val pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
         val page = pdf.startPage(pageInfo)
         val canvas = page.canvas
@@ -81,26 +77,34 @@ fun BudgetPdfCreator(
         var topY = 40
 
         if (isFirstPage) {
+            // Logo left
             canvas.drawBitmap(logoScaled, marginLeft.toFloat(), topY.toFloat(), null)
 
+            // Big title top-right
             val titleX = marginLeft + contentWidth - 180
             canvas.drawText("ORÇAMENTO", titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
 
+            // Budget number and date under title
             val labelX = titleX.toFloat()
             canvas.drawText("Nº Do Orçamento: ${budgetNumber ?: ""}", labelX, (topY + 70).toFloat(), smallLabelPaint)
             canvas.drawText("DATA:  $dateToShow", labelX, (topY + 90).toFloat(), smallLabelPaint)
 
+            // Client info area: left and right with vertical separator
             val clientAreaTop = topY + 110
             val midX = marginLeft + contentWidth / 2
 
+            // Left: Contratado
 
-            canvas.drawText("CONTRATANTE: ${user.name}", marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
-            canvas.drawText("CPF: ${user.document.cpfCnpjTranformer()}", marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
-            canvas.drawText("ENDEREÇO: ${user.street}, ${user.number}, ${user.city}", marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
-            canvas.drawText("CONTATO: ${user.phone.phoneTranformer()}", marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
+            canvas.drawText("CONTRATANTE: Francisco Odenio Silva Nunes", marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
+            canvas.drawText("CPF: 938.610.953-00", marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
+            canvas.drawText("ENDEREÇO: Matinho Dativo, n 112, Maravilha", marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
+            canvas.drawText("CONTATO: (88) 92157-0778", marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
 
+
+            // Vertical separator
             canvas.drawLine(midX.toFloat(), (clientAreaTop - 6).toFloat(), midX.toFloat(), (clientAreaTop + 64).toFloat(), normalPaint)
 
+            // Right: Contratante fields with input lines
             val rightX = midX + 12
             fun drawInputLabel(label: String, yPos: Int) {
                 canvas.drawText(label, rightX.toFloat(), yPos.toFloat(), smallLabelPaint)
@@ -108,10 +112,10 @@ fun BudgetPdfCreator(
                 canvas.drawLine(rightX.toFloat(), lineY.toFloat(), (pageWidth - marginRight).toFloat(), lineY.toFloat(), normalPaint)
             }
 
-            drawInputLabel("CONTRATADO: ${client?.name ?: ""}", clientAreaTop)
-            drawInputLabel("CPF/CNPJ: ${client?.document?.cpfCnpjTranformer() ?: ""}", clientAreaTop + 16)
-            drawInputLabel("CONTATO: ${client?.phone?.phoneTranformer() ?: ""}", clientAreaTop + 32)
-            drawInputLabel("ENDEREÇO: ${client?.address ?: ""}", clientAreaTop + 48)
+            drawInputLabel("CONTRATADO: ${cliente?.name ?: ""}", clientAreaTop)
+            drawInputLabel("CPF/CNPJ: ${cliente?.document?.cpfCnpjTranformer() ?: ""}", clientAreaTop + 16)
+            drawInputLabel("CONTATO: ${cliente?.phone?.phoneTranformer() ?: ""}", clientAreaTop + 32)
+            drawInputLabel("ENDEREÇO: ${cliente?.address ?: ""}", clientAreaTop + 48)
 
 
             topY = clientAreaTop + 74
@@ -119,28 +123,29 @@ fun BudgetPdfCreator(
             topY += 20
         }
 
+        // Draw table header on every page
         y = drawTableHeader(canvas, topY)
 
         return page to canvas
     }
 
-    var (page, canvas) = newPage(isFirstPage = true)
-
-    var totalMoney = 0.0
+    // Start first page
+    var (page, canvas) = novaPagina(isFirstPage = true)
+    var totalGeral = 0.0
 
     itens.forEach { item ->
         val estimatedRowHeight = 40
         if (y + estimatedRowHeight > pageHeight - 140) {
             pdf.finishPage(page)
             pageNumber++
-            val pair = newPage(isFirstPage = false)
+            val pair = novaPagina(isFirstPage = false)
             page = pair.first
             canvas = pair.second
         }
 
         val textPaint = TextPaint(normalPaint)
 
-        val alturaDescricao = drawMultilineText(
+        val alturaDescricao = drawMultilineTex(
             canvas = canvas,
             text = item.description,
             x = 100f,
@@ -163,7 +168,7 @@ fun BudgetPdfCreator(
             normalPaint
         )
 
-        totalMoney += (item.price * item.qty)
+        totalGeral += (item.price * item.qty)
         y += alturaDescricao + 15
     }
 
@@ -172,52 +177,21 @@ fun BudgetPdfCreator(
     if (y + signatureSectionHeight > pageHeight - 40) {
         pdf.finishPage(page)
         pageNumber++
-        val pair = newPage(isFirstPage = false)
+        val pair = novaPagina(isFirstPage = false)
         page = pair.first
         canvas = pair.second
     }
 
     y += 30
-    canvas.drawText("VALOR TOTAL: ${totalMoney.formatForBrl()}", (pageWidth - marginRight - 200).toFloat(), y.toFloat(), titlePaint)
+    canvas.drawText("VALOR TOTAL: ${totalGeral.formatForBrl()}", (pageWidth - marginRight - 200).toFloat(), y.toFloat(), titlePaint)
 
     // Observations box (left)
     y += 30
-    val obsBoxTop = y
-    val obsBoxLeft = marginLeft
     val obsBoxWidth = 280
-    val obsBoxHeight = 80
-    val obsRectPaint = Paint().apply {
-        style = Paint.Style.STROKE
-        strokeWidth = 1f
-        color = Color.BLACK
-    }
-    canvas.drawRect(
-        obsBoxLeft.toFloat(),
-        obsBoxTop.toFloat(),
-        (obsBoxLeft + obsBoxWidth).toFloat(),
-        (obsBoxTop + obsBoxHeight).toFloat(),
-        obsRectPaint
-    )
-    canvas.drawText("OBSERVAÇÕES DO SERVIÇO", (obsBoxLeft + 8).toFloat(), (obsBoxTop + 16).toFloat(), normalPaint)
-
-    // printar as observações dentro da caixa
-    observasion?.let {
-        drawMultilineText(
-            canvas = canvas,
-            text = it,
-            x = (obsBoxLeft + 8).toFloat(),
-            y = (obsBoxTop + 32).toFloat(),
-            maxWidth = obsBoxWidth - 16,
-            paint = TextPaint(normalPaint)
-        )
-    }
-
 
     // Signature area on right: draw a signature line and place image above it
     val signLeft = marginLeft + obsBoxWidth + 40
-    val signTop = obsBoxTop + 10
-    // Draw signature bitmap (if available) slightly above the signature line
-    //canvas.drawBitmap(assinaturaScaled, signLeft.toFloat(), signTop.toFloat(), null)
+    val signTop = y + 10
 
     val sigLineY = signTop + 55f
     val sigLineLeft = signLeft.toFloat()
@@ -231,11 +205,8 @@ fun BudgetPdfCreator(
     canvas.drawText(assinLabel, labelX, sigLineY + 18f, normalPaint)
 
     // Payment note
-    val paymentY = obsBoxTop + obsBoxHeight + 13
+    val paymentY = y +  13
     canvas.drawText("PAGAMENTO: A VISTA, CARTÃO, OU PIX.", marginLeft.toFloat(), paymentY.toFloat(), normalPaint)
-
-    canvas.drawText("PRAZO DE ENTREGA: ${prazo ?: ""}", marginLeft.toFloat(), paymentY.toFloat() + 13, normalPaint)
-    canvas.drawText("VALIDADE DO ORÇAMENTO: ${validade ?: ""}", marginLeft.toFloat(), paymentY.toFloat() + 26, normalPaint)
 
     pdf.finishPage(page)
 
@@ -246,7 +217,7 @@ fun BudgetPdfCreator(
     return outFile
 }
 
-fun drawMultilineText(
+fun drawMultilineTex(
     canvas: Canvas,
     text: String,
     x: Float,
