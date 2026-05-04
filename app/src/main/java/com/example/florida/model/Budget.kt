@@ -11,6 +11,7 @@ data class Budget(
     val entrega: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updateAt: LocalDateTime = LocalDateTime.now(),
-    val total: Double = 0.0,
+    val total: Long = 0,
+    val status: BudgetStatus = BudgetStatus.DRAFT,
     val items: List<Item> = emptyList(),
 )

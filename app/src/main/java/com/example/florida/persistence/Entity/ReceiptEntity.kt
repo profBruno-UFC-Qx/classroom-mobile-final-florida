@@ -14,15 +14,22 @@ import java.time.LocalDateTime
             parentColumns = ["id"],
             childColumns = ["clientId"],
             onDelete = ForeignKey.SET_NULL
+        ),
+        ForeignKey(
+            entity = BudgetEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["budgetId"],
+            onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("clientId")]
+    indices = [Index("clientId"), Index(value = ["budgetId"], unique = true)]
 )
 data class ReceiptEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val clientId: Long?,
-    val total: Double,
+    val budgetId: Long? = null,
+    val total: Long,
     val date: LocalDateTime,
     val createdAt: LocalDateTime
 )

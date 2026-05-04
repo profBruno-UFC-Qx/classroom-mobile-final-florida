@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.florida.model.Client
+import com.example.florida.model.BudgetStatus
 import com.example.florida.model.Item
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.reposity.BudgetRepository
@@ -48,6 +49,27 @@ class AppNavigatorViewModel(
         }
     }
 
+    fun updateClient(
+        client: Client,
+        name: String,
+        document: String,
+        phone: String,
+        address: String,
+        imagePath: String?,
+    ) {
+        viewModelScope.launch {
+            clientRepository.saveClient(
+                client.copy(
+                    name = name,
+                    address = address,
+                    document = document,
+                    phone = phone,
+                    imagePath = imagePath
+                )
+            )
+        }
+    }
+
     fun deleteClient(client: Client) {
         viewModelScope.launch {
             clientRepository.deleteClient(client)
@@ -74,13 +96,20 @@ class AppNavigatorViewModel(
         }
     }
 
+    fun updateBudgetStatus(id: Long, status: BudgetStatus) {
+        viewModelScope.launch {
+            budgetRepository.updateStatus(id, status)
+        }
+    }
+
     fun createReceipt(
         clientId: Long?,
         items: List<Item>,
+        budgetId: Long? = null,
         onSaved: () -> Unit,
     ) {
         viewModelScope.launch {
-            receiptRepository.saveReceipt(clientId, items)
+            receiptRepository.saveReceipt(clientId = clientId, items = items, budgetId = budgetId)
             onSaved()
         }
     }

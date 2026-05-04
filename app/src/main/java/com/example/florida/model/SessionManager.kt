@@ -2,6 +2,7 @@ package com.example.florida.model
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
+import com.example.florida.R
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.reposity.UserRepository
 import kotlinx.coroutines.CoroutineScope
@@ -22,12 +23,14 @@ object SessionManager {
     val sessionState: State<SessionState> get() = _sessionState
 
     private lateinit var userRepository: UserRepository
+    private lateinit var appContext: Context
     private var isInitialized = false
 
     fun initialize(context: Context) {
         if (isInitialized) return
 
-        userRepository = DatabaseProvider.getUserRepository(context)
+        appContext = context.applicationContext
+        userRepository = DatabaseProvider.getUserRepository(appContext)
         isInitialized = true
 
         // Carregar usuário do banco em background
@@ -50,7 +53,7 @@ object SessionManager {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _sessionState.value = SessionState.Error(e.message ?: "Erro desconhecido")
+                _sessionState.value = SessionState.Error(e.message ?: appContext.getString(R.string.unknown_error))
             }
         }
     }
@@ -65,7 +68,7 @@ object SessionManager {
                 userRepository.saveUser(userSetup)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _sessionState.value = SessionState.Error("Erro ao salvar: ${e.message}")
+                _sessionState.value = SessionState.Error(appContext.getString(R.string.save_error, e.message ?: ""))
             }
         }
     }
@@ -80,7 +83,7 @@ object SessionManager {
                 userRepository.updateUser(userSetup)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _sessionState.value = SessionState.Error("Erro ao atualizar: ${e.message}")
+                _sessionState.value = SessionState.Error(appContext.getString(R.string.update_error, e.message ?: ""))
             }
         }
     }
@@ -95,7 +98,7 @@ object SessionManager {
                 userRepository.deleteUser()
             } catch (e: Exception) {
                 e.printStackTrace()
-                _sessionState.value = SessionState.Error("Erro ao fazer logout: ${e.message}")
+                _sessionState.value = SessionState.Error(appContext.getString(R.string.logout_error, e.message ?: ""))
             }
         }
     }

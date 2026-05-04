@@ -24,12 +24,14 @@ class ReceiptRepository(private val receiptDao: ReceiptDao) {
     suspend fun saveReceipt(
         clientId: Long?,
         items: List<Item>,
+        budgetId: Long? = null,
     ): Long = withContext(Dispatchers.IO) {
         val now = LocalDateTime.now()
         val total = items.sumOf { it.total }
         receiptDao.insertReceiptWithItems(
             receipt = ReceiptEntity(
                 clientId = clientId,
+                budgetId = budgetId,
                 total = total,
                 date = now,
                 createdAt = now
@@ -54,6 +56,7 @@ class ReceiptRepository(private val receiptDao: ReceiptDao) {
             id = receipt.id,
             client = client?.toClient(),
             clientId = receipt.clientId,
+            budgetId = receipt.budgetId,
             total = receipt.total,
             date = receipt.date,
             createdAt = receipt.createdAt,

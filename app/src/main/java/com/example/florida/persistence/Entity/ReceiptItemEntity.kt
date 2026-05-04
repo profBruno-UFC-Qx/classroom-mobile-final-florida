@@ -23,5 +23,5 @@ data class ReceiptItemEntity(
     val receiptId: Long,
     val description: String,
     val qty: Int,
-    val price: Double,
+    val price: Long,
 )

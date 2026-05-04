@@ -12,8 +12,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import com.example.florida.R
 import com.example.florida.model.SessionManager
 import com.example.florida.model.UserSetup
 import com.example.florida.ui.AppNavigation.AppNavigator
@@ -76,13 +78,13 @@ fun UserProfileCard(user: UserSetup?) {
         ) {
 
             Text(
-                text = user?.name ?: "Nome do usuário",
+                text = user?.name ?: stringResource(R.string.name),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
-                text = "Documento: ${user?.document}",
+                text = stringResource(R.string.document_label, user?.document ?: ""),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

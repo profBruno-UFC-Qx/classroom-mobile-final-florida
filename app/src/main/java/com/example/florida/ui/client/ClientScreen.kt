@@ -1,21 +1,14 @@
 package com.example.florida.ui.client
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -27,6 +20,8 @@ import com.example.florida.model.Client
 fun ClientScreen(
     clients: List<Client>,
     onDeleteClick: (Client) -> Unit,
+    onEditClick: (Client) -> Unit,
+    onOpenClient: (Client) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -37,16 +32,26 @@ fun ClientScreen(
         LazyColumn(
             modifier = modifier.fillMaxSize(),
         ) {
+            if (clients.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.no_clients),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
             items(clients) { client ->
                 ClientCard(
                     client,
                     onDelete = { onDeleteClick(client) },
-                    onClicked = { },
+                    onClicked = { onOpenClient(client) },
+                    onEdit = { onEditClick(client) },
                     onClickBudget = { },
                     onClickReceipt = { },
                     modifier = Modifier
                         .padding(8.dp)
-                        .border(1.dp, MaterialTheme.colorScheme.primary, MaterialTheme.shapes.medium)
                 )
             }
         }

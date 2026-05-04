@@ -1,10 +1,27 @@
 package com.example.florida.extencions
 
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 
-fun Double.formatForBrl(): String {
+fun Long.formatForBrl(): String {
     val localeBR = Locale("pt", "BR")
     val formatter = NumberFormat.getCurrencyInstance(localeBR)
-    return formatter.format(this)
+    return formatter.format(BigDecimal(this).movePointLeft(2))
+}
+
+fun String.parseCurrencyToCents(): Long? {
+    val normalized = trim()
+        .replace("R$", "")
+        .replace(".", "")
+        .replace(",", ".")
+        .trim()
+
+    return runCatching {
+        BigDecimal(normalized)
+            .movePointRight(2)
+            .setScale(0, RoundingMode.HALF_UP)
+            .toLong()
+    }.getOrNull()
 }

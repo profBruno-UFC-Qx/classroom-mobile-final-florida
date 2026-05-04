@@ -1,6 +1,7 @@
 package com.example.florida.persistence.reposity
 
 import com.example.florida.model.Budget
+import com.example.florida.model.BudgetStatus
 import com.example.florida.model.Client
 import com.example.florida.model.Item
 import com.example.florida.persistence.Entity.BudgetEntity
@@ -38,7 +39,8 @@ class BudgetRepository(private val budgetDao: BudgetDao) {
                 entrega = entrega,
                 createdAt = now,
                 updateAt = now,
-                total = total
+                total = total,
+                status = BudgetStatus.DRAFT.name
             ),
             items = items.map {
                 BudgetItemEntity(
@@ -55,6 +57,10 @@ class BudgetRepository(private val budgetDao: BudgetDao) {
         budgetDao.deleteBudget(id)
     }
 
+    suspend fun updateStatus(id: Long, status: BudgetStatus) = withContext(Dispatchers.IO) {
+        budgetDao.updateStatus(id, status.name)
+    }
+
     private fun BudgetWithItems.toBudget(): Budget {
         return Budget(
             id = budget.id,
@@ -66,6 +72,7 @@ class BudgetRepository(private val budgetDao: BudgetDao) {
             createdAt = budget.createdAt,
             updateAt = budget.updateAt,
             total = budget.total,
+            status = BudgetStatus.from(budget.status),
             items = items.map { it.toItem() }
         )
     }

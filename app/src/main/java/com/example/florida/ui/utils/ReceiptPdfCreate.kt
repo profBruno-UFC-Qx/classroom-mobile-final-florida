@@ -10,6 +10,7 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import com.example.florida.R
 import com.example.florida.constants.PaintPdf.bigTitlePaint
 import com.example.florida.constants.PaintPdf.normalPaint
 import com.example.florida.constants.PaintPdf.smallLabelPaint
@@ -61,10 +62,10 @@ fun ReceiptPdfCreate(
         val rectPaint = Paint().apply { color = Color.BLACK }
         canvas.drawRect(left, top, right, bottom, rectPaint)
 
-        canvas.drawText("QUANT", (marginLeft + 6).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
-        canvas.drawText("DESCRIÇÃO DE SERVIÇO", (marginLeft + 70).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
-        canvas.drawText("V.U", (marginLeft + 400).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
-        canvas.drawText("TOTAL", (marginLeft + 470).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_qty), (marginLeft + 6).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_service_description), (marginLeft + 70).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_unit_value), (marginLeft + 400).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_total), (marginLeft + 470).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
 
         canvas.drawLine(left, bottom + 2f, right, bottom + 2f, normalPaint)
 
@@ -84,12 +85,12 @@ fun ReceiptPdfCreate(
 
             // Big title top-right
             val titleX = marginLeft + contentWidth - 180
-            canvas.drawText("RECIBO", titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
+            canvas.drawText(context.getString(R.string.pdf_receipt), titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
 
             // Budget number and date under title
             val labelX = titleX.toFloat()
-            canvas.drawText("Nº Do Orçamento: ${budgetNumber ?: ""}", labelX, (topY + 70).toFloat(), smallLabelPaint)
-            canvas.drawText("DATA:  $dateToShow", labelX, (topY + 90).toFloat(), smallLabelPaint)
+            canvas.drawText(context.getString(R.string.pdf_budget_number, budgetNumber?.toString() ?: ""), labelX, (topY + 70).toFloat(), smallLabelPaint)
+            canvas.drawText(context.getString(R.string.pdf_date, dateToShow), labelX, (topY + 90).toFloat(), smallLabelPaint)
 
             // Client info area: left and right with vertical separator
             val clientAreaTop = topY + 110
@@ -97,10 +98,10 @@ fun ReceiptPdfCreate(
 
             // Left: Contratado
 
-            canvas.drawText("CONTRATANTE: ${user.name}", marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
-            canvas.drawText("CPF: ${user.document.cpfCnpjTranformer()}", marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
-            canvas.drawText("ENDEREÇO: ${user.street}, ${user.number}, ${user.city}", marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
-            canvas.drawText("CONTATO: ${user.phone.phoneTranformer()}", marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_contractor, user.name), marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_cpf, user.document.cpfCnpjTranformer()), marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_address, "${user.street}, ${user.number}, ${user.city}"), marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_contact, user.phone.phoneTranformer()), marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
 
 
             // Vertical separator
@@ -114,10 +115,10 @@ fun ReceiptPdfCreate(
                 canvas.drawLine(rightX.toFloat(), lineY.toFloat(), (pageWidth - marginRight).toFloat(), lineY.toFloat(), normalPaint)
             }
 
-            drawInputLabel("CONTRATADO: ${cliente?.name ?: ""}", clientAreaTop)
-            drawInputLabel("CPF/CNPJ: ${cliente?.document?.cpfCnpjTranformer() ?: ""}", clientAreaTop + 16)
-            drawInputLabel("CONTATO: ${cliente?.phone?.phoneTranformer() ?: ""}", clientAreaTop + 32)
-            drawInputLabel("ENDEREÇO: ${cliente?.address ?: ""}", clientAreaTop + 48)
+            drawInputLabel(context.getString(R.string.pdf_hired, cliente?.name ?: ""), clientAreaTop)
+            drawInputLabel(context.getString(R.string.pdf_document, cliente?.document?.cpfCnpjTranformer() ?: ""), clientAreaTop + 16)
+            drawInputLabel(context.getString(R.string.pdf_contact, cliente?.phone?.phoneTranformer() ?: ""), clientAreaTop + 32)
+            drawInputLabel(context.getString(R.string.pdf_address, cliente?.address ?: ""), clientAreaTop + 48)
 
 
             topY = clientAreaTop + 74
@@ -133,7 +134,7 @@ fun ReceiptPdfCreate(
 
     // Start first page
     var (page, canvas) = novaPagina(isFirstPage = true)
-    var totalGeral = 0.0
+    var totalGeral = 0L
 
     itens.forEach { item ->
         val estimatedRowHeight = 40
@@ -160,7 +161,7 @@ fun ReceiptPdfCreate(
 
         canvas.drawText(item.qty.toString(), 40f, centerY.toFloat(), normalPaint)
         canvas.drawText(" ${item.price.formatForBrl()}", 350f, centerY.toFloat(), normalPaint)
-        canvas.drawText(" ${(item.price * item.qty).formatForBrl()}", 470f, centerY.toFloat(), normalPaint)
+        canvas.drawText(" ${item.total.formatForBrl()}", 470f, centerY.toFloat(), normalPaint)
 
         canvas.drawLine(
             40f,
@@ -170,7 +171,7 @@ fun ReceiptPdfCreate(
             normalPaint
         )
 
-        totalGeral += (item.price * item.qty)
+        totalGeral += item.total
         y += alturaDescricao + 15
     }
 
@@ -185,7 +186,7 @@ fun ReceiptPdfCreate(
     }
 
     y += 30
-    canvas.drawText("VALOR TOTAL: ${totalGeral.formatForBrl()}", (pageWidth - marginRight - 200).toFloat(), y.toFloat(), titlePaint)
+    canvas.drawText(context.getString(R.string.pdf_total_value, totalGeral.formatForBrl()), (pageWidth - marginRight - 200).toFloat(), y.toFloat(), titlePaint)
 
     // Observations box (left)
     y += 30
@@ -201,14 +202,14 @@ fun ReceiptPdfCreate(
     canvas.drawLine(sigLineLeft, sigLineY, sigLineRight, sigLineY, normalPaint)
 
     // "Assinatura." label centered under the line
-    val assinLabel = "Assinatura."
+    val assinLabel = context.getString(R.string.pdf_signature)
     val textWidth = normalPaint.measureText(assinLabel)
     val labelX = sigLineLeft + (sigLineRight - sigLineLeft - textWidth) / 2f
     canvas.drawText(assinLabel, labelX, sigLineY + 18f, normalPaint)
 
     // Payment note
     val paymentY = y +  13
-    canvas.drawText("PAGAMENTO: A VISTA, CARTÃO, OU PIX.", marginLeft.toFloat(), paymentY.toFloat(), normalPaint)
+    canvas.drawText(context.getString(R.string.pdf_payment), marginLeft.toFloat(), paymentY.toFloat(), normalPaint)
 
     pdf.finishPage(page)
 

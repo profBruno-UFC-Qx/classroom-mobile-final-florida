@@ -18,7 +18,12 @@ object DatabaseProvider {
                 AppDatabase::class.java,
                 AppDatabase.DATABASE_NAME
             )
-                .addMigrations(AppMigrations.MIGRATION_1_2)
+                .addMigrations(
+                    AppMigrations.MIGRATION_1_2,
+                    AppMigrations.MIGRATION_2_3,
+                    AppMigrations.MIGRATION_3_4,
+                    AppMigrations.MIGRATION_4_5
+                )
                 .build()
             database = instance
             instance

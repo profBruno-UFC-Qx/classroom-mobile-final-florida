@@ -152,7 +152,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
         OutlinedTextField(
             value = number,
             onValueChange = { number = it },
-            label = { Text("Número") },
+            label = { Text(stringResource(R.string.number)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -162,7 +162,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
         OutlinedTextField(
             value = neighborhood,
             onValueChange = { neighborhood = it },
-            label = { Text("Bairro") },
+            label = { Text(stringResource(R.string.neighborhood)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -173,14 +173,14 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
             OutlinedTextField(
                 value = city,
                 onValueChange = { city = it },
-                label = { Text("Cidade") },
+                label = { Text(stringResource(R.string.city)) },
                 modifier = Modifier.weight(1f),
                 singleLine = true
             )
             OutlinedTextField(
                 value = state,
                 onValueChange = { state = it.take(2).uppercase() },
-                label = { Text("UF") },
+                label = { Text(stringResource(R.string.state)) },
                 modifier = Modifier.weight(0.4f),
                 singleLine = true
             )
@@ -251,11 +251,11 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
         Button(
             onClick = {  // ToDO refatorar para remover logica dA UI.
                 if (name.isBlank()){
-                    errorMessage = "Nome é obrigatório"
+                    errorMessage = context.getString(R.string.required_fields_error)
                     return@Button
                 }
                 if (document.isBlank()){
-                    errorMessage = "Documento é obrigatório"
+                    errorMessage = context.getString(R.string.required_fields_error)
                     return@Button
                 }
                 isLoading = true
@@ -281,7 +281,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                         SessionManager.saveUser(userSetup)
 
                     } catch (e: Exception) {
-                        errorMessage = "Erro ao salvar: ${e.message}"
+                        errorMessage = context.getString(R.string.save_error, e.message ?: "")
                     } finally {
                         isLoading = false
                     }

@@ -73,6 +73,7 @@ fun ClientCard(
     client: Client,
     modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
+    onEdit: () -> Unit = {},
     onClicked: () -> Unit = {},
     onClickBudget: () -> Unit = {},
     onClickReceipt: () -> Unit = {},
@@ -94,6 +95,7 @@ fun ClientCard(
             CardHeader(
                 name = client.name,
                 document = client.document,
+                onEditClick = onEdit,
                 onDeleteClick = { showConfirm = true }
             )
 
@@ -138,6 +140,7 @@ fun ClientCard(
 private fun CardHeader(
     name: String,
     document: String,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) { // todo ajustar para criar um avatar apenas se não tiver imagem no cliente.
     val (bgColor, textColor) = avatarColors(name)
@@ -178,6 +181,20 @@ private fun CardHeader(
             )
         }
 
+
+        IconButton(
+            onClick = onEditClick,
+            modifier = Modifier.size(36.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = stringResource(R.string.edit_client),
+                modifier = Modifier.size(20.dp),
+            )
+        }
 
         IconButton(
             onClick = onDeleteClick,

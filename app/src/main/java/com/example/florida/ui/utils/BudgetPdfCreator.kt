@@ -10,6 +10,7 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import com.example.florida.R
 import com.example.florida.constants.PaintPdf.bigTitlePaint
 import com.example.florida.constants.PaintPdf.normalPaint
 import com.example.florida.constants.PaintPdf.smallLabelPaint
@@ -63,10 +64,10 @@ fun BudgetPdfCreator(
         val rectPaint = Paint().apply { color = Color.BLACK }
         canvas.drawRect(left, top, right, bottom, rectPaint)
 
-        canvas.drawText("QUANT", (marginLeft + 6).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
-        canvas.drawText("DESCRIÇÃO DE SERVIÇO", (marginLeft + 70).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
-        canvas.drawText("V.U", (marginLeft + 400).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
-        canvas.drawText("TOTAL", (marginLeft + 470).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_qty), (marginLeft + 6).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_service_description), (marginLeft + 70).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_unit_value), (marginLeft + 400).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
+        canvas.drawText(context.getString(R.string.pdf_total), (marginLeft + 470).toFloat(), (startY + 20).toFloat(), tableHeaderTextPaint)
 
         canvas.drawLine(left, bottom + 2f, right, bottom + 2f, normalPaint)
 
@@ -86,20 +87,20 @@ fun BudgetPdfCreator(
             logoScaled?.let { canvas.drawBitmap(it, marginLeft.toFloat(), topY.toFloat(), null) }
 
             val titleX = marginLeft + contentWidth - 180
-            canvas.drawText("ORÇAMENTO", titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
+            canvas.drawText(context.getString(R.string.pdf_budget), titleX.toFloat(), (topY + 40).toFloat(), bigTitlePaint)
 
             val labelX = titleX.toFloat()
-            canvas.drawText("Nº Do Orçamento: ${budgetNumber ?: ""}", labelX, (topY + 70).toFloat(), smallLabelPaint)
-            canvas.drawText("DATA:  $dateToShow", labelX, (topY + 90).toFloat(), smallLabelPaint)
+            canvas.drawText(context.getString(R.string.pdf_budget_number, budgetNumber ?: ""), labelX, (topY + 70).toFloat(), smallLabelPaint)
+            canvas.drawText(context.getString(R.string.pdf_date, dateToShow), labelX, (topY + 90).toFloat(), smallLabelPaint)
 
             val clientAreaTop = topY + 110
             val midX = marginLeft + contentWidth / 2
 
 
-            canvas.drawText("CONTRATANTE: ${user.name}", marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
-            canvas.drawText("CPF: ${user.document.cpfCnpjTranformer()}", marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
-            canvas.drawText("ENDEREÇO: ${user.street}, ${user.number}, ${user.city}", marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
-            canvas.drawText("CONTATO: ${user.phone.phoneTranformer()}", marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_contractor, user.name), marginLeft.toFloat(), clientAreaTop.toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_cpf, user.document.cpfCnpjTranformer()), marginLeft.toFloat(), (clientAreaTop + 16).toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_address, "${user.street}, ${user.number}, ${user.city}"), marginLeft.toFloat(), (clientAreaTop + 32).toFloat(), normalPaint)
+            canvas.drawText(context.getString(R.string.pdf_contact, user.phone.phoneTranformer()), marginLeft.toFloat(), (clientAreaTop + 48).toFloat(), normalPaint)
 
             canvas.drawLine(midX.toFloat(), (clientAreaTop - 6).toFloat(), midX.toFloat(), (clientAreaTop + 64).toFloat(), normalPaint)
 
@@ -110,10 +111,10 @@ fun BudgetPdfCreator(
                 canvas.drawLine(rightX.toFloat(), lineY.toFloat(), (pageWidth - marginRight).toFloat(), lineY.toFloat(), normalPaint)
             }
 
-            drawInputLabel("CONTRATADO: ${client?.name ?: ""}", clientAreaTop)
-            drawInputLabel("CPF/CNPJ: ${client?.document?.cpfCnpjTranformer() ?: ""}", clientAreaTop + 16)
-            drawInputLabel("CONTATO: ${client?.phone?.phoneTranformer() ?: ""}", clientAreaTop + 32)
-            drawInputLabel("ENDEREÇO: ${client?.address ?: ""}", clientAreaTop + 48)
+            drawInputLabel(context.getString(R.string.pdf_hired, client?.name ?: ""), clientAreaTop)
+            drawInputLabel(context.getString(R.string.pdf_document, client?.document?.cpfCnpjTranformer() ?: ""), clientAreaTop + 16)
+            drawInputLabel(context.getString(R.string.pdf_contact, client?.phone?.phoneTranformer() ?: ""), clientAreaTop + 32)
+            drawInputLabel(context.getString(R.string.pdf_address, client?.address ?: ""), clientAreaTop + 48)
 
 
             topY = clientAreaTop + 74
@@ -128,7 +129,7 @@ fun BudgetPdfCreator(
 
     var (page, canvas) = newPage(isFirstPage = true)
 
-    var totalMoney = 0.0
+    var totalMoney = 0L
 
     itens.forEach { item ->
         val estimatedRowHeight = 40
@@ -155,7 +156,7 @@ fun BudgetPdfCreator(
 
         canvas.drawText(item.qty.toString(), 40f, centerY.toFloat(), normalPaint)
         canvas.drawText(" ${item.price.formatForBrl()}", 350f, centerY.toFloat(), normalPaint)
-        canvas.drawText(" ${(item.price * item.qty).formatForBrl()}", 470f, centerY.toFloat(), normalPaint)
+        canvas.drawText(" ${item.total.formatForBrl()}", 470f, centerY.toFloat(), normalPaint)
 
         canvas.drawLine(
             40f,
@@ -165,7 +166,7 @@ fun BudgetPdfCreator(
             normalPaint
         )
 
-        totalMoney += (item.price * item.qty)
+        totalMoney += item.total
         y += alturaDescricao + 15
     }
 
@@ -180,7 +181,7 @@ fun BudgetPdfCreator(
     }
 
     y += 30
-    canvas.drawText("VALOR TOTAL: ${totalMoney.formatForBrl()}", (pageWidth - marginRight - 200).toFloat(), y.toFloat(), titlePaint)
+    canvas.drawText(context.getString(R.string.pdf_total_value, totalMoney.formatForBrl()), (pageWidth - marginRight - 200).toFloat(), y.toFloat(), titlePaint)
 
     // Observations box (left)
     y += 30
@@ -200,7 +201,7 @@ fun BudgetPdfCreator(
         (obsBoxTop + obsBoxHeight).toFloat(),
         obsRectPaint
     )
-    canvas.drawText("OBSERVAÇÕES DO SERVIÇO", (obsBoxLeft + 8).toFloat(), (obsBoxTop + 16).toFloat(), normalPaint)
+    canvas.drawText(context.getString(R.string.pdf_observations), (obsBoxLeft + 8).toFloat(), (obsBoxTop + 16).toFloat(), normalPaint)
 
     // printar as observações dentro da caixa
     observasion?.let {
@@ -227,17 +228,17 @@ fun BudgetPdfCreator(
     canvas.drawLine(sigLineLeft, sigLineY, sigLineRight, sigLineY, normalPaint)
 
     // "Assinatura." label centered under the line
-    val assinLabel = "Assinatura."
+    val assinLabel = context.getString(R.string.pdf_signature)
     val textWidth = normalPaint.measureText(assinLabel)
     val labelX = sigLineLeft + (sigLineRight - sigLineLeft - textWidth) / 2f
     canvas.drawText(assinLabel, labelX, sigLineY + 18f, normalPaint)
 
     // Payment note
     val paymentY = obsBoxTop + obsBoxHeight + 13
-    canvas.drawText("PAGAMENTO: A VISTA, CARTÃO, OU PIX.", marginLeft.toFloat(), paymentY.toFloat(), normalPaint)
+    canvas.drawText(context.getString(R.string.pdf_payment), marginLeft.toFloat(), paymentY.toFloat(), normalPaint)
 
-    canvas.drawText("PRAZO DE ENTREGA: ${prazo ?: ""}", marginLeft.toFloat(), paymentY.toFloat() + 13, normalPaint)
-    canvas.drawText("VALIDADE DO ORÇAMENTO: ${validade ?: ""}", marginLeft.toFloat(), paymentY.toFloat() + 26, normalPaint)
+    canvas.drawText(context.getString(R.string.pdf_delivery_time, prazo ?: ""), marginLeft.toFloat(), paymentY.toFloat() + 13, normalPaint)
+    canvas.drawText(context.getString(R.string.pdf_budget_validity, validade ?: ""), marginLeft.toFloat(), paymentY.toFloat() + 26, normalPaint)
 
     pdf.finishPage(page)
 

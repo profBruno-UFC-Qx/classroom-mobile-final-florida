@@ -20,6 +20,10 @@ interface ReceiptDao {
     @Query("SELECT * FROM receipts WHERE id = :id LIMIT 1")
     suspend fun getReceipt(id: Long): ReceiptWithItems?
 
+    @Transaction
+    @Query("SELECT * FROM receipts WHERE budgetId = :budgetId LIMIT 1")
+    suspend fun getReceiptByBudgetId(budgetId: Long): ReceiptWithItems?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReceipt(receipt: ReceiptEntity): Long
 
@@ -31,6 +35,10 @@ interface ReceiptDao {
         receipt: ReceiptEntity,
         items: List<ReceiptItemEntity>,
     ): Long {
+        receipt.budgetId?.let { budgetId ->
+            val existing = getReceiptByBudgetId(budgetId)
+            if (existing != null) return existing.receipt.id
+        }
         val receiptId = insertReceipt(receipt)
         insertItems(items.map { it.copy(receiptId = receiptId) })
         return receiptId

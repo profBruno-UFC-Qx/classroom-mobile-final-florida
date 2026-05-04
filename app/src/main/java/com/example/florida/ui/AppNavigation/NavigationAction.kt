@@ -15,6 +15,10 @@ class NavigationActions(navController: NavController) {
         }
     }
 
+    val navigateToBudgetDetail: (Long) -> Unit = { budgetId ->
+        navController.navigate(Route.BudgetDetail.create(budgetId))
+    }
+
     val navigateToSettings: () -> Unit = {
         navController.navigate(Route.Settings.route){
             restoreState = true
@@ -27,10 +31,18 @@ class NavigationActions(navController: NavController) {
         }
     }
 
+    val navigateToReceiptDetail: (Long) -> Unit = { receiptId ->
+        navController.navigate(Route.ReceiptDetail.create(receiptId))
+    }
+
     val navigateToClient: () -> Unit = {
         navController.navigate(Route.Client.route){
             restoreState = true
         }
+    }
+
+    val navigateToClientDetail: (Long) -> Unit = { clientId ->
+        navController.navigate(Route.ClientDetail.create(clientId))
     }
 
     val navigateUp: (NavController) -> Unit = { navController ->

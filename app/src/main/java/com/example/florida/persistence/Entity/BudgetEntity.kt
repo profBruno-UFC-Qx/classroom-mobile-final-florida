@@ -27,5 +27,6 @@ data class BudgetEntity(
     val entrega: String?,
     val createdAt: LocalDateTime,
     val updateAt: LocalDateTime,
-    val total: Double
+    val total: Long,
+    val status: String = "DRAFT",
 )

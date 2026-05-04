@@ -28,14 +28,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import com.example.florida.R
+import com.example.florida.model.Client
+import com.example.florida.ui.budget.BudgetDetailScreen
 import com.example.florida.ui.budget.BudgetScreen
+import com.example.florida.ui.client.ClientDetailScreen
 import com.example.florida.ui.client.ClientScreen
 import com.example.florida.ui.client.CreateClientDialog
 import com.example.florida.ui.home.HomeScreen
+import com.example.florida.ui.receipt.ReceiptDetailScreen
 import com.example.florida.ui.receipt.ReceiptScreen
 import com.example.florida.ui.settings.SettingsScreen
 
@@ -51,8 +57,10 @@ fun AppNavigator(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     var showCreateClientDialog by remember { mutableStateOf(false) }
+    var clientToEdit by remember { mutableStateOf<Client?>(null) }
     var showCreateBudgetDialog by remember { mutableStateOf(false) }
     var showCreateReceiptDialog by remember { mutableStateOf(false) }
+    var selectedClientIdForNewDocument by remember { mutableStateOf<Long?>(null) }
     val clients by appViewModel.clients.collectAsState()
     val budgets by appViewModel.budgets.collectAsState()
     val receipts by appViewModel.receipts.collectAsState()
@@ -129,10 +137,12 @@ fun AppNavigator(
                     onOpenBudgets = { navActions.navigateTobudget() },
                     onOpenReceipts = { navActions.navigateToReceipt() },
                     onCreateBudget = {
+                        selectedClientIdForNewDocument = null
                         showCreateBudgetDialog = true
                         navActions.navigateTobudget()
                     },
                     onCreateReceipt = {
+                        selectedClientIdForNewDocument = null
                         showCreateReceiptDialog = true
                         navActions.navigateToReceipt()
                     }
@@ -141,8 +151,10 @@ fun AppNavigator(
             composable(Route.Budget.route) {
                 BudgetScreen(
                     budgets = budgets,
+                    receipts = receipts,
                     clients = clients,
                     showCreateDialog = showCreateBudgetDialog,
+                    initialClientId = selectedClientIdForNewDocument,
                     onDismissCreateDialog = { showCreateBudgetDialog = false },
                     onCreateBudget = { clientId, notes, validade, entrega, items ->
                         appViewModel.createBudget(
@@ -153,11 +165,61 @@ fun AppNavigator(
                             items = items,
                             onSaved = {
                             showCreateBudgetDialog = false
+                            selectedClientIdForNewDocument = null
                             }
                         )
                     },
                     onDeleteBudget = { budget ->
                         appViewModel.deleteBudget(budget.id)
+                    },
+                    onUpdateStatus = { budget, status ->
+                        appViewModel.updateBudgetStatus(budget.id, status)
+                    },
+                    onCreateReceiptFromBudget = { budget ->
+                        appViewModel.createReceipt(
+                            clientId = budget.clientId,
+                            items = budget.items,
+                            budgetId = budget.id,
+                            onSaved = { navActions.navigateToReceipt() }
+                        )
+                    },
+                    onOpenBudget = { budget ->
+                        navActions.navigateToBudgetDetail(budget.id)
+                    },
+                    onOpenReceipt = { receipt ->
+                        navActions.navigateToReceiptDetail(receipt.id)
+                    }
+                )
+            }
+            composable(
+                route = Route.BudgetDetail.route,
+                arguments = listOf(navArgument("budgetId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val budgetId = backStackEntry.arguments?.getLong("budgetId") ?: 0L
+                val budget = budgets.firstOrNull { it.id == budgetId }
+                val linkedReceipt = receipts.firstOrNull { it.budgetId == budgetId }
+                BudgetDetailScreen(
+                    budget = budget,
+                    linkedReceipt = linkedReceipt,
+                    onUpdateStatus = { status ->
+                        budget?.let { appViewModel.updateBudgetStatus(it.id, status) }
+                    },
+                    onCreateReceipt = {
+                        budget?.let {
+                            appViewModel.createReceipt(
+                                clientId = it.clientId,
+                                items = it.items,
+                                budgetId = it.id,
+                                onSaved = { navActions.navigateToReceipt() }
+                            )
+                        }
+                    },
+                    onOpenReceipt = { receipt ->
+                        navActions.navigateToReceiptDetail(receipt.id)
+                    },
+                    onDelete = {
+                        budget?.let { appViewModel.deleteBudget(it.id) }
+                        navActions.navigateUp(navController)
                     }
                 )
             }
@@ -169,6 +231,37 @@ fun AppNavigator(
                     clients = clients,
                     onDeleteClick = { client ->
                         appViewModel.deleteClient(client)
+                    },
+                    onEditClick = { client ->
+                        clientToEdit = client
+                    },
+                    onOpenClient = { client ->
+                        navActions.navigateToClientDetail(client.id)
+                    }
+                )
+            }
+            composable(
+                route = Route.ClientDetail.route,
+                arguments = listOf(navArgument("clientId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val clientId = backStackEntry.arguments?.getLong("clientId") ?: 0L
+                val client = clients.firstOrNull { it.id == clientId }
+                ClientDetailScreen(
+                    client = client,
+                    budgets = budgets.filter { it.clientId == clientId },
+                    receipts = receipts.filter { it.clientId == clientId },
+                    onEditClient = { selectedClient ->
+                        clientToEdit = selectedClient
+                    },
+                    onCreateBudget = { selectedClient ->
+                        selectedClientIdForNewDocument = selectedClient.id
+                        showCreateBudgetDialog = true
+                        navActions.navigateTobudget()
+                    },
+                    onCreateReceipt = { selectedClient ->
+                        selectedClientIdForNewDocument = selectedClient.id
+                        showCreateReceiptDialog = true
+                        navActions.navigateToReceipt()
                     }
                 )
             }
@@ -177,6 +270,7 @@ fun AppNavigator(
                     receipts = receipts,
                     clients = clients,
                     showCreateDialog = showCreateReceiptDialog,
+                    initialClientId = selectedClientIdForNewDocument,
                     onDismissCreateDialog = { showCreateReceiptDialog = false },
                     onCreateReceipt = { clientId, items ->
                         appViewModel.createReceipt(
@@ -184,118 +278,92 @@ fun AppNavigator(
                             items = items,
                             onSaved = {
                             showCreateReceiptDialog = false
+                            selectedClientIdForNewDocument = null
                             }
                         )
                     },
                     onDeleteReceipt = { receipt ->
                         appViewModel.deleteReceipt(receipt.id)
+                    },
+                    onOpenReceipt = { receipt ->
+                        navActions.navigateToReceiptDetail(receipt.id)
+                    }
+                )
+            }
+            composable(
+                route = Route.ReceiptDetail.route,
+                arguments = listOf(navArgument("receiptId") { type = NavType.LongType })
+            ) { backStackEntry ->
+                val receiptId = backStackEntry.arguments?.getLong("receiptId") ?: 0L
+                val receipt = receipts.firstOrNull { it.id == receiptId }
+                val originBudget = receipt?.budgetId?.let { budgetId ->
+                    budgets.firstOrNull { it.id == budgetId }
+                }
+                ReceiptDetailScreen(
+                    receipt = receipt,
+                    originBudget = originBudget,
+                    onOpenBudget = { budget ->
+                        navActions.navigateToBudgetDetail(budget.id)
+                    },
+                    onDelete = {
+                        receipt?.let { appViewModel.deleteReceipt(it.id) }
+                        navActions.navigateUp(navController)
                     }
                 )
             }
         }
     }
 
-    if (showCreateClientDialog) {
+    if (showCreateClientDialog || clientToEdit != null) {
         CreateClientDialog(
-            onDismiss = { showCreateClientDialog = false },
+            client = clientToEdit,
+            onDismiss = {
+                showCreateClientDialog = false
+                clientToEdit = null
+            },
             onConfirm = { name, document, phone, address, imagePath ->
-                appViewModel.createClient(
-                    name = name,
-                    document = document,
-                    phone = phone,
-                    address = address,
-                    imagePath = imagePath
-                )
-                    showCreateClientDialog = false
-            }
-        )
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppTopBar(
-    title: String,
-    showBackButton: Boolean = true,
-    onBackClick: () -> Unit = {}
-) {
-    TopAppBar(
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        navigationIcon = {
-            if (showBackButton) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = MaterialTheme.colorScheme.onPrimary
+                val editing = clientToEdit
+                if (editing == null) {
+                    appViewModel.createClient(
+                        name = name,
+                        document = document,
+                        phone = phone,
+                        address = address,
+                        imagePath = imagePath
+                    )
+                } else {
+                    appViewModel.updateClient(
+                        client = editing,
+                        name = name,
+                        document = document,
+                        phone = phone,
+                        address = address,
+                        imagePath = imagePath
                     )
                 }
+                showCreateClientDialog = false
+                clientToEdit = null
             }
-        }
-    )
-}
-
-@Composable
-fun AppBottomBar(
-    currentRoute: String?,
-    navActions: NavigationActions
-) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier
-    ) {
-        BottomNavItem.entries.forEach { item ->
-            NavigationBarItem(
-                selected = currentRoute == item.route,
-                onClick = {
-                    when (item) {
-                        BottomNavItem.HOME -> navActions.navigateToHome()
-                        BottomNavItem.BUDGET -> navActions.navigateTobudget()
-                        BottomNavItem.CLIENT -> navActions.navigateToClient()
-                        BottomNavItem.RECEIPT -> navActions.navigateToReceipt()
-                        BottomNavItem.SETTINGS -> navActions.navigateToSettings()
-                    }
-                },
-                icon = item.icon,
-                label = { Text(stringResource(item.label)) },
-                alwaysShowLabel = true
-            )
-        }
-    }
-}
-
-@Composable
-fun ActionButton(
-    currentRoute: String?,
-    onClick: () -> Unit
-) {
-    FloatingActionButton(
-        onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.onSecondaryContainer
-    ) {
-        Icon(
-            imageVector = Icons.Default.Add,
-            tint = MaterialTheme.colorScheme.onPrimary,
-            contentDescription = stringResource(R.string.add)
         )
+    }
+
+    if (!showCreateBudgetDialog && !showCreateReceiptDialog) {
+        selectedClientIdForNewDocument = null
     }
 }
 
 @Composable
 fun getTitleForRoute(route: String?): String {
+    if (route?.startsWith("clients/") == true) {
+        return stringResource(R.string.detail_client)
+    }
+    if (route?.startsWith("budget/") == true) {
+        return stringResource(R.string.detail_budget)
+    }
+    if (route?.startsWith("receipt/") == true) {
+        return stringResource(R.string.detail_receipt)
+    }
+
     return when (route) {
         Route.Home.route -> stringResource(R.string.home)
         Route.Budget.route -> stringResource(R.string.budget)

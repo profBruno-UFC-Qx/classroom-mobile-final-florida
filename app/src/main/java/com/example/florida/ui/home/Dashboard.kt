@@ -24,8 +24,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.florida.R
 import com.example.florida.extencions.formatForBrl
 import com.example.florida.model.Budget
 import com.example.florida.model.Client
@@ -56,36 +58,36 @@ fun Dashboard(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Resumo do negócio",
+            text = stringResource(R.string.business_summary),
             style = MaterialTheme.typography.titleLarge
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             MetricCard(
-                title = "Recebido",
+                title = stringResource(R.string.received),
                 value = metrics.totalReceived.formatForBrl(),
-                subtitle = "em recibos",
+                subtitle = stringResource(R.string.in_receipts),
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
-                title = "Em aberto",
+                title = stringResource(R.string.open_amount),
                 value = metrics.totalBudgeted.formatForBrl(),
-                subtitle = "em orçamentos",
+                subtitle = stringResource(R.string.in_budgets),
                 modifier = Modifier.weight(1f)
             )
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             MetricCard(
-                title = "Clientes",
+                title = stringResource(R.string.client),
                 value = metrics.clientCount.toString(),
-                subtitle = "ativos",
+                subtitle = stringResource(R.string.active_clients),
                 modifier = Modifier.weight(1f)
             )
             MetricCard(
-                title = "Este mês",
+                title = stringResource(R.string.this_month),
                 value = metrics.monthReceived.formatForBrl(),
-                subtitle = "recebido",
+                subtitle = stringResource(R.string.received).lowercase(),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -99,26 +101,26 @@ fun Dashboard(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Atalhos",
+                    text = stringResource(R.string.shortcuts),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 QuickActionRow(
                     icon = Icons.Outlined.Person,
-                    label = "Clientes",
-                    value = "${metrics.clientCount} cadastrados",
+                    label = stringResource(R.string.client),
+                    value = stringResource(R.string.registered_clients, metrics.clientCount),
                     onClick = onOpenClients
                 )
                 QuickActionRow(
                     icon = Icons.Outlined.Edit,
-                    label = "Orçamentos",
-                    value = "${metrics.budgetCount} criados",
+                    label = stringResource(R.string.budget),
+                    value = stringResource(R.string.created_budgets, metrics.budgetCount),
                     onClick = onOpenBudgets
                 )
                 QuickActionRow(
                     icon = Icons.Outlined.Done,
-                    label = "Recibos",
-                    value = "${metrics.receiptCount} emitidos",
+                    label = stringResource(R.string.receipt),
+                    value = stringResource(R.string.issued_receipts, metrics.receiptCount),
                     onClick = onOpenReceipts
                 )
             }
@@ -131,7 +133,7 @@ fun Dashboard(
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text("Orçamento")
+                Text(stringResource(R.string.budget))
             }
             FilledTonalButton(
                 onClick = onCreateReceipt,
@@ -139,7 +141,7 @@ fun Dashboard(
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text("Recibo")
+                Text(stringResource(R.string.receipt))
             }
         }
 
@@ -220,14 +222,14 @@ private fun RecentDocumentsCard(documents: List<RecentDocument>) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "Últimos documentos",
+                text = stringResource(R.string.recent_documents),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
 
             if (documents.isEmpty()) {
                 Text(
-                    text = "Crie um orçamento ou recibo para acompanhar sua atividade aqui.",
+                    text = stringResource(R.string.empty_recent_documents),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -252,12 +254,16 @@ private fun RecentDocumentRow(document: RecentDocument) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = document.title,
+            text = stringResource(document.titleRes, document.documentId),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "${document.clientName} • ${document.createdAt.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"))}",
+                text = stringResource(
+                    R.string.recent_document_meta,
+                    document.clientName.ifBlank { stringResource(R.string.customer_not_informed) },
+                    document.createdAt.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"))
+                ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -274,9 +280,9 @@ private data class DashboardMetrics(
     val clientCount: Int,
     val budgetCount: Int,
     val receiptCount: Int,
-    val totalBudgeted: Double,
-    val totalReceived: Double,
-    val monthReceived: Double,
+    val totalBudgeted: Long,
+    val totalReceived: Long,
+    val monthReceived: Long,
     val recentDocuments: List<RecentDocument>,
 ) {
     companion object {
@@ -289,16 +295,18 @@ private data class DashboardMetrics(
             val currentYear = LocalDate.now().year
             val recentBudgets = budgets.map {
                 RecentDocument(
-                    title = "Orçamento #${it.id}",
-                    clientName = it.client?.name ?: "Cliente não informado",
+                    titleRes = R.string.budget_number,
+                    documentId = it.id,
+                    clientName = it.client?.name ?: "",
                     total = it.total,
                     createdAt = it.createdAt
                 )
             }
             val recentReceipts = receipts.map {
                 RecentDocument(
-                    title = "Recibo #${it.id}",
-                    clientName = it.client?.name ?: "Cliente não informado",
+                    titleRes = R.string.receipt_number,
+                    documentId = it.id,
+                    clientName = it.client?.name ?: "",
                     total = it.total,
                     createdAt = it.createdAt
                 )
@@ -322,8 +330,9 @@ private data class DashboardMetrics(
 }
 
 private data class RecentDocument(
-    val title: String,
+    val titleRes: Int,
+    val documentId: Long,
     val clientName: String,
-    val total: Double,
+    val total: Long,
     val createdAt: LocalDateTime,
 )

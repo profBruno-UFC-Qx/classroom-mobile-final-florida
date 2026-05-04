@@ -35,8 +35,6 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(scrollState)
     ) {
-        UserProfileCard(user)
-        Spacer(modifier = Modifier.height(16.dp))
         Dashboard(
             clients = clients,
             budgets = budgets,
