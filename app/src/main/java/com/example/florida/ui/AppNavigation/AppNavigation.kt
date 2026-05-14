@@ -3,8 +3,10 @@ package com.example.florida.ui.AppNavigation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +18,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,8 +30,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.florida.R
+import com.example.florida.model.Client
 import com.example.florida.ui.budget.BudgetScreen
 import com.example.florida.ui.client.ClientScreen
+import com.example.florida.ui.client.CreateClientDialog
 import com.example.florida.ui.home.HomeScreen
 import com.example.florida.ui.receipt.ReceiptScreen
 import com.example.florida.ui.settings.SettingsScreen
@@ -37,6 +45,12 @@ fun AppNavigator(
     val navActions = NavigationActions(navController)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var showCreateClientDialog by remember { mutableStateOf(false) }
+    val clients = remember {
+        mutableStateListOf(
+            Client("Francisco", "Rua dos Bobos", "06364254307", "123456789", null)
+        )
+    }
 
     val showBottomBar = currentRoute in listOf(
         Route.Home.route,
@@ -79,8 +93,20 @@ fun AppNavigator(
             }
         },
         floatingActionButton = {
-            if (showBottomBar) {
-
+            if (showActionButton) {
+                ActionButton(
+                    currentRoute = currentRoute,
+                    onClick = {
+                        when (currentRoute) {
+                            Route.Client.route -> {
+                                showCreateClientDialog = true
+                            }
+                            Route.Budget.route -> { }
+                            Route.Receipt.route -> { }
+                            else -> {  }
+                        }
+                    }
+                )
             }
         }
     ) { innerPadding ->
@@ -99,7 +125,10 @@ fun AppNavigator(
                 SettingsScreen()
             }
             composable(Route.Client.route) {
-                ClientScreen()
+                ClientScreen(
+                    clients = clients,
+                    onDeleteClick = { client -> clients.remove(client) }
+                )
             }
             composable(Route.Receipt.route) {
                 ReceiptScreen()
@@ -108,6 +137,16 @@ fun AppNavigator(
                 ReceiptScreen()
             }
         }
+    }
+
+    if (showCreateClientDialog) {
+        CreateClientDialog(
+            onDismiss = { showCreateClientDialog = false },
+            onConfirm = { name, document, phone, address, imagePath ->
+                clients.add(Client(name, address, document, phone, imagePath))
+                showCreateClientDialog = false
+            }
+        )
     }
 }
 
@@ -124,11 +163,12 @@ fun AppTopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimary
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
             titleContentColor = MaterialTheme.colorScheme.onPrimary
         ),
         navigationIcon = {
@@ -178,9 +218,18 @@ fun AppBottomBar(
 @Composable
 fun ActionButton(
     currentRoute: String?,
-    // criar um meio de o butão do scarfolld chamar a criação de um novo orçamento ou recibo ou cliente.
-
+    onClick: () -> Unit
 ) {
+    FloatingActionButton(
+        onClick = onClick,
+        containerColor = MaterialTheme.colorScheme.onSecondaryContainer
+    ) {
+        Icon(
+            imageVector = Icons.Default.Add,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            contentDescription = stringResource(R.string.add)
+        )
+    }
 }
 
 @Composable

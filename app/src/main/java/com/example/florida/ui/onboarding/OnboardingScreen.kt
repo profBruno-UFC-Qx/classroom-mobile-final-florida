@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -69,6 +71,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -111,6 +114,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
         Button(
             onClick = { launcher.launch("image/*") },
+            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.inverseOnSurface),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(id = R.string.select_image))
@@ -201,13 +205,14 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onSecondary),
+            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.inverseOnSurface),
             enabled = !isLoading
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onSecondary,
                     strokeWidth = 2.dp
                 )
             } else {

@@ -2,7 +2,6 @@ package com.example.florida.ui.home
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,16 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.example.florida.model.SessionManager
 import com.example.florida.model.UserSetup
 import com.example.florida.ui.AppNavigation.AppNavigator
 import com.example.florida.ui.onboarding.OnboardingScreen
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
+
 
 @Composable
 fun MainApp() {
@@ -30,7 +26,7 @@ fun MainApp() {
             SplashScreen()
         }
         SessionManager.SessionState.NoUser -> {
-            OnboardingScreen()
+            OnboardingScreen( )
         }
         is SessionManager.SessionState.Logged -> {
             AppWithNavigation()
