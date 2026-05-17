@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +46,7 @@ fun BudgetDetailScreen(
     budget: Budget?,
     linkedReceipt: Receipt?,
     onUpdateStatus: (BudgetStatus) -> Unit,
+    onEdit: (Budget) -> Unit,
     onCreateReceipt: () -> Unit,
     onOpenReceipt: (Receipt) -> Unit,
     onDelete: () -> Unit,
@@ -94,7 +96,14 @@ fun BudgetDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    AssistChip(onClick = {}, label = { Text(stringResource(budget.status.labelRes)) })
+                    AssistChip(
+                        onClick = {},
+                        label = { Text(stringResource(budget.status.labelRes)) },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = budget.status.containerColor(),
+                            labelColor = budget.status.contentColor()
+                        )
+                    )
                 }
 
                 Text(
@@ -175,6 +184,10 @@ fun BudgetDetailScreen(
             }
         }
 
+        Button(onClick = { onEdit(budget) }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.edit_budget))
+        }
+
         Button(
             onClick = {
                 user?.let {
@@ -198,7 +211,10 @@ fun BudgetDetailScreen(
         }
 
         TextButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.delete_budget))
+            Text(
+                text = stringResource(R.string.delete_budget),
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         Spacer(Modifier.height(12.dp))
@@ -226,4 +242,22 @@ fun BudgetDetailScreen(
             }
         )
     }
+}
+
+@Composable
+private fun BudgetStatus.containerColor() = when (this) {
+    BudgetStatus.APPROVED -> MaterialTheme.colorScheme.secondaryContainer
+    BudgetStatus.REJECTED -> MaterialTheme.colorScheme.errorContainer
+    BudgetStatus.EXPIRED -> MaterialTheme.colorScheme.surfaceVariant
+    BudgetStatus.SENT -> MaterialTheme.colorScheme.primaryContainer
+    BudgetStatus.DRAFT -> MaterialTheme.colorScheme.tertiaryContainer
+}
+
+@Composable
+private fun BudgetStatus.contentColor() = when (this) {
+    BudgetStatus.APPROVED -> MaterialTheme.colorScheme.onSecondaryContainer
+    BudgetStatus.REJECTED -> MaterialTheme.colorScheme.onErrorContainer
+    BudgetStatus.EXPIRED -> MaterialTheme.colorScheme.onSurfaceVariant
+    BudgetStatus.SENT -> MaterialTheme.colorScheme.onPrimaryContainer
+    BudgetStatus.DRAFT -> MaterialTheme.colorScheme.onTertiaryContainer
 }

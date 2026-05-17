@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,11 +43,16 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
+import com.example.florida.extencions.normalizeCpfCnpjInput
+import com.example.florida.extencions.normalizePhoneInput
 import com.example.florida.model.SessionManager
 import com.example.florida.model.UserSetup
 import com.example.florida.persistence.ImageStorage
+import com.example.florida.ui.utils.CpfCnpjVisualTransformation
+import com.example.florida.ui.utils.PhoneVisualTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -90,7 +96,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
         Text(
             stringResource(id = R.string.initial_setup),
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.inverseSurface
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -112,11 +118,13 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
         OutlinedTextField(
             value = document,
             onValueChange = {
-                document = it
+                document = it.normalizeCpfCnpjInput()
                 errorMessage = null
             },
             label = { Text(stringResource(id = R.string.document)) },
             modifier = Modifier.fillMaxWidth(),
+            visualTransformation = CpfCnpjVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
             isError = errorMessage != null && document.isBlank()
         )
@@ -126,11 +134,13 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
         OutlinedTextField(
             value = phone,
             onValueChange = {
-                phone = it
+                phone = it.normalizePhoneInput()
                 errorMessage = null
             },
             label = { Text(stringResource(id = R.string.phone)) },
             modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PhoneVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             singleLine = true
         )
 
@@ -190,7 +200,10 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
         Button(
             onClick = { launcher.launch("image/*") },
-            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.inverseOnSurface),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            ),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(id = R.string.select_image))
@@ -287,14 +300,17 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                     }
                 }
             },
-            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onSecondary),
-            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.onSecondaryContainer, MaterialTheme.colorScheme.inverseOnSurface),
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
             enabled = !isLoading
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp
                 )
             } else {

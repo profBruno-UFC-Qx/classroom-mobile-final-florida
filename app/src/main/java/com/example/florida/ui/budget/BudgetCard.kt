@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -71,7 +72,11 @@ fun BudgetCard(
             )
             AssistChip(
                 onClick = {},
-                label = { Text(stringResource(budget.status.labelRes)) }
+                label = { Text(stringResource(budget.status.labelRes)) },
+                colors = AssistChipDefaults.assistChipColors(
+                    containerColor = budget.status.containerColor(),
+                    labelColor = budget.status.contentColor()
+                )
             )
             Text(text = stringResource(R.string.items_count, budget.items.size))
             Text(
@@ -82,12 +87,18 @@ fun BudgetCard(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (budget.status != BudgetStatus.APPROVED) {
                     TextButton(onClick = { onUpdateStatus(BudgetStatus.APPROVED) }) {
-                        Text(stringResource(R.string.approve))
+                        Text(
+                            text = stringResource(R.string.approve),
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
                 }
                 if (budget.status != BudgetStatus.REJECTED) {
                     TextButton(onClick = { onUpdateStatus(BudgetStatus.REJECTED) }) {
-                        Text(stringResource(R.string.reject))
+                        Text(
+                            text = stringResource(R.string.reject),
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
                 if (budget.status == BudgetStatus.APPROVED && linkedReceiptId == null) {
@@ -105,7 +116,10 @@ fun BudgetCard(
                     Text(stringResource(R.string.pdf))
                 }
                 TextButton(onClick = { showDeleteConfirm = true }) {
-                    Text(stringResource(R.string.delete))
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
@@ -133,4 +147,22 @@ fun BudgetCard(
             }
         )
     }
+}
+
+@Composable
+private fun BudgetStatus.containerColor() = when (this) {
+    BudgetStatus.APPROVED -> MaterialTheme.colorScheme.secondaryContainer
+    BudgetStatus.REJECTED -> MaterialTheme.colorScheme.errorContainer
+    BudgetStatus.EXPIRED -> MaterialTheme.colorScheme.surfaceVariant
+    BudgetStatus.SENT -> MaterialTheme.colorScheme.primaryContainer
+    BudgetStatus.DRAFT -> MaterialTheme.colorScheme.tertiaryContainer
+}
+
+@Composable
+private fun BudgetStatus.contentColor() = when (this) {
+    BudgetStatus.APPROVED -> MaterialTheme.colorScheme.onSecondaryContainer
+    BudgetStatus.REJECTED -> MaterialTheme.colorScheme.onErrorContainer
+    BudgetStatus.EXPIRED -> MaterialTheme.colorScheme.onSurfaceVariant
+    BudgetStatus.SENT -> MaterialTheme.colorScheme.onPrimaryContainer
+    BudgetStatus.DRAFT -> MaterialTheme.colorScheme.onTertiaryContainer
 }

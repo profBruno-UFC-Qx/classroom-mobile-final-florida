@@ -76,6 +76,7 @@ fun ReceiptScreen(
     if (showCreateDialog) {
         CreateReceiptDialog(
             clients = clients,
+            receipt = null,
             initialClientId = initialClientId,
             onDismiss = onDismissCreateDialog,
             onConfirm = onCreateReceipt

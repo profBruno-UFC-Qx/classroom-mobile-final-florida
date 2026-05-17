@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -27,12 +28,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
+import com.example.florida.extencions.currencyDigitsToCents
 import com.example.florida.extencions.formatForBrl
-import com.example.florida.extencions.parseCurrencyToCents
 import com.example.florida.model.Client
 import com.example.florida.model.Item
+import com.example.florida.model.Receipt
+import com.example.florida.ui.utils.CurrencyVisualTransformation
 import kotlin.collections.forEach
 import androidx.compose.foundation.lazy.items as lazyItems
 
@@ -40,22 +44,26 @@ import androidx.compose.foundation.lazy.items as lazyItems
 @Composable
 fun CreateReceiptDialog(
     clients: List<Client>,
+    receipt: Receipt? = null,
     initialClientId: Long?,
     onDismiss: () -> Unit,
     onConfirm: (clientId: Long?, items: List<Item>) -> Unit,
 ) {
-    var selectedClient by remember(initialClientId, clients) {
-        mutableStateOf(clients.firstOrNull { it.id == initialClientId } ?: clients.firstOrNull())
+    val selectedClientId = receipt?.clientId ?: initialClientId
+    var selectedClient by remember(selectedClientId, clients) {
+        mutableStateOf(clients.firstOrNull { it.id == selectedClientId } ?: clients.firstOrNull())
     }
     var expanded by remember { mutableStateOf(false) }
     var description by remember { mutableStateOf("") }
     var qty by remember { mutableStateOf("1") }
     var price by remember { mutableStateOf("") }
-    val items = remember { mutableStateListOf<Item>() }
+    val items = remember(receipt?.id) {
+        mutableStateListOf<Item>().also { it.addAll(receipt?.items.orEmpty()) }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.new_receipt_title)) },
+        title = { Text(stringResource(if (receipt == null) R.string.new_receipt_title else R.string.edit_receipt)) },
         text = {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
@@ -112,13 +120,26 @@ fun CreateReceiptDialog(
                     OutlinedTextField(description, { description = it }, label = { Text(stringResource(R.string.description)) }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(qty, { qty = it.filter(Char::isDigit) }, label = { Text(stringResource(R.string.quantity)) }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(price, { price = it }, label = { Text(stringResource(R.string.value)) }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(
+                            qty,
+                            { qty = it.filter(Char::isDigit).take(4) },
+                            label = { Text(stringResource(R.string.quantity)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            price,
+                            { price = it.filter(Char::isDigit).take(12) },
+                            label = { Text(stringResource(R.string.value)) },
+                            visualTransformation = CurrencyVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                     Button(
                         onClick = {
                             val parsedQty = qty.toIntOrNull() ?: 1
-                            val parsedPrice = price.parseCurrencyToCents() ?: 0
+                            val parsedPrice = price.currencyDigitsToCents()
                             if (description.isNotBlank() && parsedPrice > 0) {
                                 items.add(Item(description = description, qty = parsedQty, price = parsedPrice))
                                 description = ""

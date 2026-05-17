@@ -51,6 +51,32 @@ class ReceiptRepository(private val receiptDao: ReceiptDao) {
         receiptDao.deleteReceipt(id)
     }
 
+    suspend fun updateReceipt(
+        receipt: Receipt,
+        clientId: Long?,
+        items: List<Item>,
+    ) = withContext(Dispatchers.IO) {
+        val total = items.sumOf { it.total }
+        receiptDao.updateReceiptWithItems(
+            receipt = ReceiptEntity(
+                id = receipt.id,
+                clientId = clientId,
+                budgetId = receipt.budgetId,
+                total = total,
+                date = receipt.date,
+                createdAt = receipt.createdAt
+            ),
+            items = items.map {
+                ReceiptItemEntity(
+                    receiptId = receipt.id,
+                    description = it.description,
+                    qty = it.qty,
+                    price = it.price
+                )
+            }
+        )
+    }
+
     private fun ReceiptWithItems.toReceipt(): Receipt {
         return Receipt(
             id = receipt.id,

@@ -200,7 +200,7 @@ private fun CardHeader(
             onClick = onDeleteClick,
             modifier = Modifier.size(36.dp),
             colors = IconButtonDefaults.iconButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                contentColor = MaterialTheme.colorScheme.error,
             ),
         ) {
             Icon(

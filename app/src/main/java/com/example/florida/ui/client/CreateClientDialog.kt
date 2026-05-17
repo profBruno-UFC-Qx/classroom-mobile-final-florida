@@ -20,13 +20,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
+import com.example.florida.extencions.normalizeCpfCnpjInput
+import com.example.florida.extencions.normalizePhoneInput
 import com.example.florida.model.Client
 import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.home.SplashScreen
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
 import com.example.florida.ui.utils.PhoneVisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,8 +50,8 @@ fun CreateClientDialog(
 ) {
     val context = LocalContext.current
     var name by remember(client) { mutableStateOf(client?.name.orEmpty()) }
-    var document by remember(client) { mutableStateOf(client?.document.orEmpty()) }
-    var phone by remember(client) { mutableStateOf(client?.phone.orEmpty()) }
+    var document by remember(client) { mutableStateOf(client?.document.orEmpty().normalizeCpfCnpjInput()) }
+    var phone by remember(client) { mutableStateOf(client?.phone.orEmpty().normalizePhoneInput()) }
     var address by remember(client) { mutableStateOf(client?.address.orEmpty()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val scope = rememberCoroutineScope()
@@ -84,17 +88,19 @@ fun CreateClientDialog(
                 )
                 OutlinedTextField(
                     document,
-                    {if (it.length <= 14) document = it},
+                    { document = it.normalizeCpfCnpjInput() },
                     label = { Text(stringResource(R.string.document)) },
                     visualTransformation = CpfCnpjVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = errorMessage != null && document.isBlank(),
                     singleLine = true
                 )
                 OutlinedTextField(
                     phone,
-                    { if (it.length <= 14) phone = it },
+                    { phone = it.normalizePhoneInput() },
                     label = { Text(stringResource(R.string.phone)) },
                     visualTransformation = PhoneVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     isError = errorMessage != null && phone.isBlank(),
                     singleLine = true
                 )

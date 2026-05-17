@@ -40,6 +40,7 @@ import java.time.format.DateTimeFormatter
 fun ReceiptDetailScreen(
     receipt: Receipt?,
     originBudget: Budget?,
+    onEdit: (Receipt) -> Unit,
     onOpenBudget: (Budget) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -135,6 +136,10 @@ fun ReceiptDetailScreen(
             }
         }
 
+        Button(onClick = { onEdit(receipt) }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.edit_receipt))
+        }
+
         Button(
             onClick = {
                 user?.let {
@@ -155,7 +160,10 @@ fun ReceiptDetailScreen(
         }
 
         TextButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.delete_receipt))
+            Text(
+                text = stringResource(R.string.delete_receipt),
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         Spacer(Modifier.height(12.dp))

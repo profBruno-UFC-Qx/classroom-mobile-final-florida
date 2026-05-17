@@ -1,5 +1,14 @@
 package com.example.florida.extencions
 
+fun String.onlyDigits(maxLength: Int? = null): String {
+    val digits = filter(Char::isDigit)
+    return maxLength?.let { digits.take(it) } ?: digits
+}
+
+fun String.normalizeCpfCnpjInput(): String = onlyDigits(maxLength = 14)
+
+fun String.normalizePhoneInput(): String = onlyDigits(maxLength = 11)
+
 fun String.cpfCnpjTranformer(): String {
     val digits = filter { it.isDigit() }
 

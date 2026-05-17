@@ -16,11 +16,11 @@ fun ActionButton(
 ) {
     FloatingActionButton(
         onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.onSecondaryContainer
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
     ) {
         Icon(
             imageVector = Icons.Default.Add,
-            tint = MaterialTheme.colorScheme.onPrimary,
             contentDescription = stringResource(R.string.add)
         )
     }

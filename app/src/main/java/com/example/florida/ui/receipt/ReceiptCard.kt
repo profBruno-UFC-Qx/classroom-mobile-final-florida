@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -67,7 +68,11 @@ fun ReceiptCard(
             receipt.budgetId?.let {
                 AssistChip(
                     onClick = {},
-                    label = { Text(stringResource(R.string.origin_budget_chip, it)) }
+                    label = { Text(stringResource(R.string.origin_budget_chip, it)) },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        labelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
             }
             Text(text = stringResource(R.string.items_count, receipt.items.size))
@@ -81,7 +86,10 @@ fun ReceiptCard(
                     Text(stringResource(R.string.pdf))
                 }
                 TextButton(onClick = { showDeleteConfirm = true }) {
-                    Text(stringResource(R.string.delete))
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }

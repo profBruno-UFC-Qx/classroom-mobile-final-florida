@@ -36,6 +36,19 @@ interface BudgetDao {
         return budgetId
     }
 
+    @Transaction
+    suspend fun updateBudgetWithItems(
+        budget: BudgetEntity,
+        items: List<BudgetItemEntity>,
+    ) {
+        insertBudget(budget)
+        deleteItemsForBudget(budget.id)
+        insertItems(items.map { it.copy(budgetId = budget.id) })
+    }
+
+    @Query("DELETE FROM budget_items WHERE budgetId = :budgetId")
+    suspend fun deleteItemsForBudget(budgetId: Long)
+
     @Query("DELETE FROM budgets WHERE id = :id")
     suspend fun deleteBudget(id: Long)
 

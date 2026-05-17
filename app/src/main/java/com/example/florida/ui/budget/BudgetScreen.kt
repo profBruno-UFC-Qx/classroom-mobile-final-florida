@@ -29,14 +29,16 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
+import com.example.florida.extencions.currencyDigitsToCents
 import com.example.florida.extencions.formatForBrl
-import com.example.florida.extencions.parseCurrencyToCents
 import com.example.florida.model.Budget
 import com.example.florida.model.BudgetStatus
 import com.example.florida.model.Client
@@ -44,6 +46,7 @@ import com.example.florida.model.Item
 import com.example.florida.model.Receipt
 import com.example.florida.model.SessionManager
 import com.example.florida.ui.utils.BudgetPdfCreator
+import com.example.florida.ui.utils.CurrencyVisualTransformation
 import com.example.florida.ui.utils.sharePdf
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -117,6 +120,7 @@ fun BudgetScreen(
     if (showCreateDialog) {
         CreateBudgetDialog(
             clients = clients,
+            budget = null,
             initialClientId = initialClientId,
             onDismiss = onDismissCreateDialog,
             onConfirm = onCreateBudget
@@ -126,27 +130,31 @@ fun BudgetScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CreateBudgetDialog(
+fun CreateBudgetDialog(
     clients: List<Client>,
+    budget: Budget? = null,
     initialClientId: Long?,
     onDismiss: () -> Unit,
     onConfirm: (clientId: Long?, notes: String?, validade: String?, entrega: String?, items: List<Item>) -> Unit,
 ) {
-    var selectedClient by remember(initialClientId, clients) {
-        mutableStateOf(clients.firstOrNull { it.id == initialClientId } ?: clients.firstOrNull())
+    val selectedClientId = budget?.clientId ?: initialClientId
+    var selectedClient by remember(selectedClientId, clients) {
+        mutableStateOf(clients.firstOrNull { it.id == selectedClientId } ?: clients.firstOrNull())
     }
     var expanded by remember { mutableStateOf(false) }
-    var notes by remember { mutableStateOf("") }
-    var validade by remember { mutableStateOf("") }
-    var entrega by remember { mutableStateOf("") }
+    var notes by remember(budget?.id) { mutableStateOf(budget?.notes.orEmpty()) }
+    var validade by remember(budget?.id) { mutableStateOf(budget?.validade.orEmpty()) }
+    var entrega by remember(budget?.id) { mutableStateOf(budget?.entrega.orEmpty()) }
     var description by remember { mutableStateOf("") }
     var qty by remember { mutableStateOf("1") }
     var price by remember { mutableStateOf("") }
-    val items = remember { mutableStateListOf<Item>() }
+    val items = remember(budget?.id) {
+        mutableStateListOf<Item>().also { it.addAll(budget?.items.orEmpty()) }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.new_budget_title)) },
+        title = { Text(stringResource(if (budget == null) R.string.new_budget_title else R.string.edit_budget)) },
         text = {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
@@ -212,13 +220,26 @@ private fun CreateBudgetDialog(
                     OutlinedTextField(description, { description = it }, label = { Text(stringResource(R.string.description)) }, modifier = Modifier.fillMaxWidth())
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(qty, { qty = it.filter(Char::isDigit) }, label = { Text(stringResource(R.string.quantity)) }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(price, { price = it }, label = { Text(stringResource(R.string.value)) }, modifier = Modifier.weight(1f))
+                        OutlinedTextField(
+                            qty,
+                            { qty = it.filter(Char::isDigit).take(4) },
+                            label = { Text(stringResource(R.string.quantity)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedTextField(
+                            price,
+                            { price = it.filter(Char::isDigit).take(12) },
+                            label = { Text(stringResource(R.string.value)) },
+                            visualTransformation = CurrencyVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                     Button(
                         onClick = {
                             val parsedQty = qty.toIntOrNull() ?: 1
-                            val parsedPrice = price.parseCurrencyToCents() ?: 0
+                            val parsedPrice = price.currencyDigitsToCents()
                             if (description.isNotBlank() && parsedPrice > 0) {
                                 items.add(Item(description = description, qty = parsedQty, price = parsedPrice))
                                 description = ""

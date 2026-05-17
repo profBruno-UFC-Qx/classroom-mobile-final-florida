@@ -44,6 +44,19 @@ interface ReceiptDao {
         return receiptId
     }
 
+    @Transaction
+    suspend fun updateReceiptWithItems(
+        receipt: ReceiptEntity,
+        items: List<ReceiptItemEntity>,
+    ) {
+        insertReceipt(receipt)
+        deleteItemsForReceipt(receipt.id)
+        insertItems(items.map { it.copy(receiptId = receipt.id) })
+    }
+
+    @Query("DELETE FROM receipt_items WHERE receiptId = :receiptId")
+    suspend fun deleteItemsForReceipt(receiptId: Long)
+
     @Query("DELETE FROM receipts WHERE id = :id")
     suspend fun deleteReceipt(id: Long)
 }

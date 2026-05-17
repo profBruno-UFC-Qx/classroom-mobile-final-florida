@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.florida.model.Budget
 import com.example.florida.model.Client
 import com.example.florida.model.BudgetStatus
 import com.example.florida.model.Item
+import com.example.florida.model.Receipt
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.reposity.BudgetRepository
 import com.example.florida.persistence.reposity.ClientRepository
@@ -96,6 +98,28 @@ class AppNavigatorViewModel(
         }
     }
 
+    fun updateBudget(
+        budget: Budget,
+        clientId: Long?,
+        notes: String?,
+        validade: String?,
+        entrega: String?,
+        items: List<Item>,
+        onSaved: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            budgetRepository.updateBudget(
+                budget = budget,
+                clientId = clientId,
+                notes = notes,
+                validade = validade,
+                entrega = entrega,
+                items = items
+            )
+            onSaved()
+        }
+    }
+
     fun updateBudgetStatus(id: Long, status: BudgetStatus) {
         viewModelScope.launch {
             budgetRepository.updateStatus(id, status)
@@ -117,6 +141,22 @@ class AppNavigatorViewModel(
     fun deleteReceipt(id: Long) {
         viewModelScope.launch {
             receiptRepository.deleteReceipt(id)
+        }
+    }
+
+    fun updateReceipt(
+        receipt: Receipt,
+        clientId: Long?,
+        items: List<Item>,
+        onSaved: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            receiptRepository.updateReceipt(
+                receipt = receipt,
+                clientId = clientId,
+                items = items
+            )
+            onSaved()
         }
     }
 

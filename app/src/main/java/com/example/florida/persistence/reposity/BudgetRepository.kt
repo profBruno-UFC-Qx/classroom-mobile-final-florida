@@ -57,6 +57,38 @@ class BudgetRepository(private val budgetDao: BudgetDao) {
         budgetDao.deleteBudget(id)
     }
 
+    suspend fun updateBudget(
+        budget: Budget,
+        clientId: Long?,
+        notes: String?,
+        validade: String?,
+        entrega: String?,
+        items: List<Item>,
+    ) = withContext(Dispatchers.IO) {
+        val total = items.sumOf { it.total }
+        budgetDao.updateBudgetWithItems(
+            budget = BudgetEntity(
+                id = budget.id,
+                clientId = clientId,
+                notes = notes,
+                validade = validade,
+                entrega = entrega,
+                createdAt = budget.createdAt,
+                updateAt = LocalDateTime.now(),
+                total = total,
+                status = budget.status.name
+            ),
+            items = items.map {
+                BudgetItemEntity(
+                    budgetId = budget.id,
+                    description = it.description,
+                    qty = it.qty,
+                    price = it.price
+                )
+            }
+        )
+    }
+
     suspend fun updateStatus(id: Long, status: BudgetStatus) = withContext(Dispatchers.IO) {
         budgetDao.updateStatus(id, status.name)
     }

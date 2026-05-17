@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -34,13 +35,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.florida.R
+import com.example.florida.model.Budget
 import com.example.florida.model.Client
+import com.example.florida.model.Receipt
+import com.example.florida.ui.budget.CreateBudgetDialog
 import com.example.florida.ui.budget.BudgetDetailScreen
 import com.example.florida.ui.budget.BudgetScreen
 import com.example.florida.ui.client.ClientDetailScreen
 import com.example.florida.ui.client.ClientScreen
 import com.example.florida.ui.client.CreateClientDialog
 import com.example.florida.ui.home.HomeScreen
+import com.example.florida.ui.receipt.CreateReceiptDialog
 import com.example.florida.ui.receipt.ReceiptDetailScreen
 import com.example.florida.ui.receipt.ReceiptScreen
 import com.example.florida.ui.settings.SettingsScreen
@@ -60,6 +65,8 @@ fun AppNavigator(
     var clientToEdit by remember { mutableStateOf<Client?>(null) }
     var showCreateBudgetDialog by remember { mutableStateOf(false) }
     var showCreateReceiptDialog by remember { mutableStateOf(false) }
+    var budgetToEdit by remember { mutableStateOf<Budget?>(null) }
+    var receiptToEdit by remember { mutableStateOf<Receipt?>(null) }
     var selectedClientIdForNewDocument by remember { mutableStateOf<Long?>(null) }
     val clients by appViewModel.clients.collectAsState()
     val budgets by appViewModel.budgets.collectAsState()
@@ -126,7 +133,7 @@ fun AppNavigator(
         NavHost(
             navController = navController,
             startDestination = Route.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding).padding(top = 12.dp)
         ) {
             composable(Route.Home.route) {
                 HomeScreen(
@@ -203,6 +210,9 @@ fun AppNavigator(
                     linkedReceipt = linkedReceipt,
                     onUpdateStatus = { status ->
                         budget?.let { appViewModel.updateBudgetStatus(it.id, status) }
+                    },
+                    onEdit = { selectedBudget ->
+                        budgetToEdit = selectedBudget
                     },
                     onCreateReceipt = {
                         budget?.let {
@@ -302,6 +312,9 @@ fun AppNavigator(
                 ReceiptDetailScreen(
                     receipt = receipt,
                     originBudget = originBudget,
+                    onEdit = { selectedReceipt ->
+                        receiptToEdit = selectedReceipt
+                    },
                     onOpenBudget = { budget ->
                         navActions.navigateToBudgetDetail(budget.id)
                     },
@@ -343,6 +356,51 @@ fun AppNavigator(
                 }
                 showCreateClientDialog = false
                 clientToEdit = null
+            }
+        )
+    }
+
+    budgetToEdit?.let { editingBudget ->
+        CreateBudgetDialog(
+            clients = clients,
+            budget = editingBudget,
+            initialClientId = editingBudget.clientId,
+            onDismiss = {
+                budgetToEdit = null
+            },
+            onConfirm = { clientId, notes, validade, entrega, items ->
+                appViewModel.updateBudget(
+                    budget = editingBudget,
+                    clientId = clientId,
+                    notes = notes,
+                    validade = validade,
+                    entrega = entrega,
+                    items = items,
+                    onSaved = {
+                        budgetToEdit = null
+                    }
+                )
+            }
+        )
+    }
+
+    receiptToEdit?.let { editingReceipt ->
+        CreateReceiptDialog(
+            clients = clients,
+            receipt = editingReceipt,
+            initialClientId = editingReceipt.clientId,
+            onDismiss = {
+                receiptToEdit = null
+            },
+            onConfirm = { clientId, items ->
+                appViewModel.updateReceipt(
+                    receipt = editingReceipt,
+                    clientId = clientId,
+                    items = items,
+                    onSaved = {
+                        receiptToEdit = null
+                    }
+                )
             }
         )
     }
