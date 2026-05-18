@@ -2,7 +2,7 @@
 
 > Aplicativo Android para digitalização e gerenciamento de orçamentos e recibos, com geração de PDF e armazenamento local.
 
-codex resume 019e3ced-f56f-7032-930b-0a7725d91ff1
+
 ## :bulb: Objetivo Geral
 Desenvolver um aplicativo mobile para a plataforma Android, utilizando **Kotlin**, que permita o cadastro de clientes e o gerenciamento completo de orçamentos e recibos, com exportação de documentos em formato **PDF** e armazenamento local dos dados no dispositivo do usuário — funcionando totalmente offline.
 
