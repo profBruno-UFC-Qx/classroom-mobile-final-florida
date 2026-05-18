@@ -2,9 +2,7 @@ package com.example.florida.ui.home
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,9 +19,6 @@ import com.example.florida.ui.navigation.AppNavigator
 import com.example.florida.ui.onboarding.OnboardingScreen
 import com.example.florida.ui.session.SessionViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
 
 @Composable
 fun MainApp() {
