@@ -1,4 +1,4 @@
-package com.example.florida.persistence.Entity
+package com.example.florida.persistence.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
