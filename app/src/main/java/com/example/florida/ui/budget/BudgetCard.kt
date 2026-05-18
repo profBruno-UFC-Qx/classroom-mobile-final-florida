@@ -23,15 +23,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.formatForBrl
-import com.example.florida.model.Budget
+import com.example.florida.domain.model.BudgetListItem
+import com.example.florida.extensions.formatForBrl
 import com.example.florida.model.BudgetStatus
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun BudgetCard(
-    budget: Budget,
-    linkedReceiptId: Long?,
+    budget: BudgetListItem,
     onDelete: () -> Unit,
     onUpdateStatus: (BudgetStatus) -> Unit,
     onCreateReceipt: () -> Unit,
@@ -55,7 +54,7 @@ fun BudgetCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = budget.client?.name ?: stringResource(R.string.customer_not_informed),
+                    text = budget.clientName ?: stringResource(R.string.customer_not_informed),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -78,7 +77,7 @@ fun BudgetCard(
                     labelColor = budget.status.contentColor()
                 )
             )
-            Text(text = stringResource(R.string.items_count, budget.items.size))
+            Text(text = stringResource(R.string.items_count, budget.itemCount))
             Text(
                 text = budget.total.formatForBrl(),
                 style = MaterialTheme.typography.titleMedium,
@@ -101,15 +100,15 @@ fun BudgetCard(
                         )
                     }
                 }
-                if (budget.status == BudgetStatus.APPROVED && linkedReceiptId == null) {
+                if (budget.status == BudgetStatus.APPROVED && budget.linkedReceiptId == null) {
                     TextButton(onClick = onCreateReceipt) {
                         Text(stringResource(R.string.receipt))
                     }
                 }
-                if (linkedReceiptId != null) {
+                if (budget.linkedReceiptId != null) {
                     AssistChip(
                         onClick = onOpenLinkedReceipt,
-                        label = { Text(stringResource(R.string.linked_receipt, linkedReceiptId)) }
+                        label = { Text(stringResource(R.string.linked_receipt, budget.linkedReceiptId)) }
                     )
                 }
                 TextButton(onClick = onSharePdf) {

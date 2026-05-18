@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.example.florida.persistence.Entity.UserEntity
+import com.example.florida.persistence.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -16,32 +16,40 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.example.florida.R
-import com.example.florida.model.SessionManager
 import com.example.florida.model.UserSetup
-import com.example.florida.ui.AppNavigation.AppNavigator
+import com.example.florida.ui.navigation.AppNavigator
 import com.example.florida.ui.onboarding.OnboardingScreen
+import com.example.florida.ui.session.SessionViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
 fun MainApp() {
-    val state = SessionManager.sessionState.value
+    val context = LocalContext.current
+    val sessionViewModel: SessionViewModel = viewModel(
+        factory = SessionViewModel.factory(context)
+    )
+    val state by sessionViewModel.sessionState.collectAsState()
 
     when (state) {
-        SessionManager.SessionState.Loading -> {
+        SessionViewModel.SessionState.Loading -> {
             SplashScreen()
         }
-        SessionManager.SessionState.NoUser -> {
-            OnboardingScreen( )
+        SessionViewModel.SessionState.NoUser -> {
+            OnboardingScreen(
+                onSaveUser = sessionViewModel::saveUser
+            )
         }
-        is SessionManager.SessionState.Logged -> {
+        is SessionViewModel.SessionState.Logged -> {
             AppWithNavigation()
         }
-        is SessionManager.SessionState.Error -> {
+        is SessionViewModel.SessionState.Error -> {
+            val errorState = state as SessionViewModel.SessionState.Error
             ErrorScreen(
-                message = state.message,
-                onRetry = { SessionManager.retry() }
+                message = errorState.message,
+                onRetry = { sessionViewModel.retry() }
             )
         }
     }

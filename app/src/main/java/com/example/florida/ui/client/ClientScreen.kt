@@ -14,14 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
+import com.example.florida.domain.model.ClientListItem
 import com.example.florida.model.Client
 
 @Composable
 fun ClientScreen(
-    clients: List<Client>,
+    clients: List<ClientListItem>,
     onDeleteClick: (Client) -> Unit,
     onEditClick: (Client) -> Unit,
     onOpenClient: (Client) -> Unit,
+    onClickBudget: (Client) -> Unit = {},
+    onClickReceipt: (Client) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -43,17 +46,30 @@ fun ClientScreen(
                 }
             }
             items(clients) { client ->
+                val fullClient = client.toClient()
                 ClientCard(
-                    client,
-                    onDelete = { onDeleteClick(client) },
-                    onClicked = { onOpenClient(client) },
-                    onEdit = { onEditClick(client) },
-                    onClickBudget = { },
-                    onClickReceipt = { },
+                    fullClient,
+                    onDelete = { onDeleteClick(fullClient) },
+                    onClicked = { onOpenClient(fullClient) },
+                    onEdit = { onEditClick(fullClient) },
+                    onClickBudget = { onClickBudget(fullClient) },
+                    onClickReceipt = { onClickReceipt(fullClient) },
                     modifier = Modifier
                         .padding(8.dp)
                 )
             }
         }
     }
+}
+
+private fun ClientListItem.toClient(): Client {
+    return Client(
+        id = id,
+        name = name,
+        address = address,
+        document = document,
+        phone = phone,
+        imagePath = imagePath,
+        deleted = false
+    )
 }

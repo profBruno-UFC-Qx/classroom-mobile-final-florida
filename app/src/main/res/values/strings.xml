@@ -45,6 +45,11 @@
     <string name="client_not_found">Cliente não encontrado.</string>
     <string name="no_clients">Nenhum cliente cadastrado.</string>
     <string name="required_fields_error">Preencha todos os campos obrigatórios.</string>
+    <string name="invalid_document_error">Informe um CPF ou CNPJ válido.</string>
+    <string name="invalid_phone_error">Informe um telefone com DDD.</string>
+    <string name="item_description_error">Informe a descrição do item.</string>
+    <string name="item_quantity_error">A quantidade deve ser maior que zero.</string>
+    <string name="item_price_error">O valor do item deve ser maior que zero.</string>
     <string name="save_error">Erro ao salvar: %1$s</string>
     <string name="unknown_error">Erro desconhecido</string>
     <string name="update_error">Erro ao atualizar: %1$s</string>

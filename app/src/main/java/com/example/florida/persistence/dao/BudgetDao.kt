@@ -5,8 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.example.florida.persistence.Entity.BudgetEntity
-import com.example.florida.persistence.Entity.BudgetItemEntity
+import com.example.florida.persistence.entity.BudgetEntity
+import com.example.florida.persistence.entity.BudgetItemEntity
+import com.example.florida.persistence.projection.BudgetListProjection
 import com.example.florida.persistence.relations.BudgetWithItems
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +16,35 @@ interface BudgetDao {
     @Transaction
     @Query("SELECT * FROM budgets ORDER BY createdAt DESC")
     fun observeBudgets(): Flow<List<BudgetWithItems>>
+
+    @Query("""
+        SELECT
+            budgets.id AS id,
+            budgets.clientId AS clientId,
+            clients.name AS clientName,
+            budgets.createdAt AS createdAt,
+            budgets.total AS total,
+            budgets.status AS status,
+            COUNT(budget_items.id) AS itemCount,
+            receipts.id AS linkedReceiptId
+        FROM budgets
+        LEFT JOIN clients ON clients.id = budgets.clientId
+        LEFT JOIN budget_items ON budget_items.budgetId = budgets.id
+        LEFT JOIN receipts ON receipts.budgetId = budgets.id
+        GROUP BY budgets.id
+        ORDER BY budgets.createdAt DESC
+    """)
+    fun observeBudgetListItems(): Flow<List<BudgetListProjection>>
+
+    @Query("SELECT COUNT(*) FROM budgets")
+    fun observeBudgetCount(): Flow<Int>
+
+    @Query("SELECT COALESCE(SUM(total), 0) FROM budgets")
+    fun observeTotalBudgeted(): Flow<Long>
+
+    @Transaction
+    @Query("SELECT * FROM budgets WHERE id = :id LIMIT 1")
+    fun observeBudget(id: Long): Flow<BudgetWithItems?>
 
     @Transaction
     @Query("SELECT * FROM budgets WHERE id = :id LIMIT 1")

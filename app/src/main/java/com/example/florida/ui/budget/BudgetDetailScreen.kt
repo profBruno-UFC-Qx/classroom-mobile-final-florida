@@ -31,13 +31,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.formatForBrl
+import com.example.florida.extensions.formatForBrl
 import com.example.florida.model.Budget
 import com.example.florida.model.BudgetStatus
 import com.example.florida.model.Receipt
-import com.example.florida.model.SessionManager
-import com.example.florida.ui.utils.BudgetPdfCreator
-import com.example.florida.ui.utils.sharePdf
+import com.example.florida.model.UserSetup
+import com.example.florida.document.pdf.BudgetPdfCreator
+import com.example.florida.document.pdf.sharePdf
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -45,6 +45,7 @@ import java.time.format.DateTimeFormatter
 fun BudgetDetailScreen(
     budget: Budget?,
     linkedReceipt: Receipt?,
+    currentUser: UserSetup?,
     onUpdateStatus: (BudgetStatus) -> Unit,
     onEdit: (Budget) -> Unit,
     onCreateReceipt: () -> Unit,
@@ -62,7 +63,6 @@ fun BudgetDetailScreen(
     }
 
     val context = LocalContext.current
-    val user = SessionManager.getCurrentUser()
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Column(
@@ -190,7 +190,7 @@ fun BudgetDetailScreen(
 
         Button(
             onClick = {
-                user?.let {
+                currentUser?.let {
                     val file = BudgetPdfCreator(
                         user = it,
                         client = budget.client,

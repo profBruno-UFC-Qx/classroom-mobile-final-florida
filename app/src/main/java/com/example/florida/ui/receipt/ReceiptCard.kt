@@ -23,13 +23,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.formatForBrl
-import com.example.florida.model.Receipt
+import com.example.florida.domain.model.ReceiptListItem
+import com.example.florida.extensions.formatForBrl
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun ReceiptCard(
-    receipt: Receipt,
+    receipt: ReceiptListItem,
     onDelete: () -> Unit,
     onOpen: () -> Unit,
     onSharePdf: () -> Unit,
@@ -50,7 +50,7 @@ fun ReceiptCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = receipt.client?.name ?: stringResource(R.string.customer_not_informed),
+                    text = receipt.clientName ?: stringResource(R.string.customer_not_informed),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -75,7 +75,7 @@ fun ReceiptCard(
                     )
                 )
             }
-            Text(text = stringResource(R.string.items_count, receipt.items.size))
+            Text(text = stringResource(R.string.items_count, receipt.itemCount))
             Text(
                 text = receipt.total.formatForBrl(),
                 style = MaterialTheme.typography.titleMedium,

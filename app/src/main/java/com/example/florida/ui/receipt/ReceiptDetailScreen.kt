@@ -28,18 +28,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.formatForBrl
+import com.example.florida.extensions.formatForBrl
 import com.example.florida.model.Budget
 import com.example.florida.model.Receipt
-import com.example.florida.model.SessionManager
-import com.example.florida.ui.utils.ReceiptPdfCreate
-import com.example.florida.ui.utils.sharePdf
+import com.example.florida.model.UserSetup
+import com.example.florida.document.pdf.ReceiptPdfCreate
+import com.example.florida.document.pdf.sharePdf
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun ReceiptDetailScreen(
     receipt: Receipt?,
     originBudget: Budget?,
+    currentUser: UserSetup?,
     onEdit: (Receipt) -> Unit,
     onOpenBudget: (Budget) -> Unit,
     onDelete: () -> Unit,
@@ -55,7 +56,6 @@ fun ReceiptDetailScreen(
     }
 
     val context = LocalContext.current
-    val user = SessionManager.getCurrentUser()
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Column(
@@ -142,7 +142,7 @@ fun ReceiptDetailScreen(
 
         Button(
             onClick = {
-                user?.let {
+                currentUser?.let {
                     val file = ReceiptPdfCreate(
                         context = context,
                         user = it,

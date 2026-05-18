@@ -4,9 +4,7 @@ import android.graphics.Color
 import android.graphics.Paint
 
 object Constants {
-
 }
-
 
 object PaintPdf{
     val titlePaint = Paint().apply {

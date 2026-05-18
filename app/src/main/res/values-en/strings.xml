@@ -45,6 +45,11 @@
     <string name="client_not_found">Client not found.</string>
     <string name="no_clients">No clients registered.</string>
     <string name="required_fields_error">Fill in all required fields.</string>
+    <string name="invalid_document_error">Enter a valid CPF or CNPJ.</string>
+    <string name="invalid_phone_error">Enter a phone number with area code.</string>
+    <string name="item_description_error">Enter the item description.</string>
+    <string name="item_quantity_error">Quantity must be greater than zero.</string>
+    <string name="item_price_error">Item value must be greater than zero.</string>
     <string name="save_error">Error saving: %1$s</string>
     <string name="unknown_error">Unknown error</string>
     <string name="update_error">Error updating: %1$s</string>

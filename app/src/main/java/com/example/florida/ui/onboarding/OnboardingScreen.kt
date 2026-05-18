@@ -46,9 +46,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.normalizeCpfCnpjInput
-import com.example.florida.extencions.normalizePhoneInput
-import com.example.florida.model.SessionManager
+import com.example.florida.domain.validation.FormValidators
+import com.example.florida.domain.validation.ValidationError
+import com.example.florida.extensions.normalizeCpfCnpjInput
+import com.example.florida.extensions.normalizePhoneInput
 import com.example.florida.model.UserSetup
 import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
@@ -58,7 +59,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun OnboardingScreen(modifier: Modifier = Modifier) {
+fun OnboardingScreen(
+    onSaveUser: (UserSetup) -> Unit,
+    modifier: Modifier = Modifier
+) {
 
     val context = LocalContext.current
 
@@ -263,12 +267,13 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
 
         Button(
             onClick = {  // ToDO refatorar para remover logica dA UI.
-                if (name.isBlank()){
-                    errorMessage = context.getString(R.string.required_fields_error)
-                    return@Button
-                }
-                if (document.isBlank()){
-                    errorMessage = context.getString(R.string.required_fields_error)
+                val validation = FormValidators.validateIssuer(
+                    name = name,
+                    document = document,
+                    phone = phone
+                )
+                if (!validation.isValid) {
+                    errorMessage = context.getValidationMessage(validation.errors.first())
                     return@Button
                 }
                 isLoading = true
@@ -290,8 +295,7 @@ fun OnboardingScreen(modifier: Modifier = Modifier) {
                             phone = phone,
                             imagePath = imagePath
                         )
-                        // SessionManager.saveUser já persiste no banco
-                        SessionManager.saveUser(userSetup)
+                        onSaveUser(userSetup)
 
                     } catch (e: Exception) {
                         errorMessage = context.getString(R.string.save_error, e.message ?: "")
@@ -335,5 +339,19 @@ fun rememberBitmapFromUri(uri: Uri?): State<Bitmap?> {
                 }
             }
         }
+    }
+}
+
+private fun android.content.Context.getValidationMessage(error: ValidationError): String {
+    return when (error) {
+        ValidationError.REQUIRED_NAME,
+        ValidationError.REQUIRED_DOCUMENT,
+        ValidationError.REQUIRED_ADDRESS,
+        ValidationError.EMPTY_ITEMS -> getString(R.string.required_fields_error)
+        ValidationError.INVALID_DOCUMENT -> getString(R.string.invalid_document_error)
+        ValidationError.INVALID_PHONE -> getString(R.string.invalid_phone_error)
+        ValidationError.INVALID_ITEM_DESCRIPTION -> getString(R.string.item_description_error)
+        ValidationError.INVALID_ITEM_QUANTITY -> getString(R.string.item_quantity_error)
+        ValidationError.INVALID_ITEM_PRICE -> getString(R.string.item_price_error)
     }
 }

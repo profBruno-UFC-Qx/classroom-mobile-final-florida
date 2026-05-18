@@ -5,16 +5,48 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.example.florida.persistence.Entity.ReceiptEntity
-import com.example.florida.persistence.Entity.ReceiptItemEntity
+import com.example.florida.persistence.entity.ReceiptEntity
+import com.example.florida.persistence.entity.ReceiptItemEntity
+import com.example.florida.persistence.projection.ReceiptListProjection
 import com.example.florida.persistence.relations.ReceiptWithItems
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 
 @Dao
 interface ReceiptDao {
     @Transaction
     @Query("SELECT * FROM receipts ORDER BY date DESC")
     fun observeReceipts(): Flow<List<ReceiptWithItems>>
+
+    @Query("""
+        SELECT
+            receipts.id AS id,
+            receipts.clientId AS clientId,
+            clients.name AS clientName,
+            receipts.budgetId AS budgetId,
+            receipts.total AS total,
+            receipts.date AS date,
+            COUNT(receipt_items.id) AS itemCount
+        FROM receipts
+        LEFT JOIN clients ON clients.id = receipts.clientId
+        LEFT JOIN receipt_items ON receipt_items.receiptId = receipts.id
+        GROUP BY receipts.id
+        ORDER BY receipts.date DESC
+    """)
+    fun observeReceiptListItems(): Flow<List<ReceiptListProjection>>
+
+    @Query("SELECT COUNT(*) FROM receipts")
+    fun observeReceiptCount(): Flow<Int>
+
+    @Query("SELECT COALESCE(SUM(total), 0) FROM receipts")
+    fun observeTotalReceived(): Flow<Long>
+
+    @Query("SELECT COALESCE(SUM(total), 0) FROM receipts WHERE date >= :start AND date < :end")
+    fun observeReceivedBetween(start: LocalDateTime, end: LocalDateTime): Flow<Long>
+
+    @Transaction
+    @Query("SELECT * FROM receipts WHERE id = :id LIMIT 1")
+    fun observeReceipt(id: Long): Flow<ReceiptWithItems?>
 
     @Transaction
     @Query("SELECT * FROM receipts WHERE id = :id LIMIT 1")

@@ -2,9 +2,9 @@ package com.example.florida.persistence.relations
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.example.florida.persistence.Entity.BudgetEntity
-import com.example.florida.persistence.Entity.BudgetItemEntity
-import com.example.florida.persistence.Entity.ClientEntity
+import com.example.florida.persistence.entity.BudgetEntity
+import com.example.florida.persistence.entity.BudgetItemEntity
+import com.example.florida.persistence.entity.ClientEntity
 
 data class BudgetWithItems(
     @Embedded val budget: BudgetEntity,

@@ -51,9 +51,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.normalizeCpfCnpjInput
-import com.example.florida.extencions.normalizePhoneInput
-import com.example.florida.model.SessionManager
+import com.example.florida.domain.validation.FormValidators
+import com.example.florida.domain.validation.ValidationError
+import com.example.florida.extensions.normalizeCpfCnpjInput
+import com.example.florida.extensions.normalizePhoneInput
 import com.example.florida.model.UserSetup
 import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
@@ -64,22 +65,33 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsScreen(
+    currentUser: UserSetup?,
+    onSaveUser: (UserSetup) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentUser = SessionManager.getCurrentUser() ?: UserSetup()
+    val issuer = currentUser
+    if (issuer == null) {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
-    var name by remember(currentUser) { mutableStateOf(currentUser.name) }
-    var document by remember(currentUser) { mutableStateOf(currentUser.document.normalizeCpfCnpjInput()) }
-    var phone by remember(currentUser) { mutableStateOf(currentUser.phone.normalizePhoneInput()) }
-    var street by remember(currentUser) { mutableStateOf(currentUser.street) }
-    var number by remember(currentUser) { mutableStateOf(currentUser.number) }
-    var neighborhood by remember(currentUser) { mutableStateOf(currentUser.neighborhood) }
-    var city by remember(currentUser) { mutableStateOf(currentUser.city) }
-    var state by remember(currentUser) { mutableStateOf(currentUser.state) }
-    var imagePath by remember(currentUser) { mutableStateOf(currentUser.imagePath) }
+    var name by remember(issuer) { mutableStateOf(issuer.name) }
+    var document by remember(issuer) { mutableStateOf(issuer.document.normalizeCpfCnpjInput()) }
+    var phone by remember(issuer) { mutableStateOf(issuer.phone.normalizePhoneInput()) }
+    var street by remember(issuer) { mutableStateOf(issuer.street) }
+    var number by remember(issuer) { mutableStateOf(issuer.number) }
+    var neighborhood by remember(issuer) { mutableStateOf(issuer.neighborhood) }
+    var city by remember(issuer) { mutableStateOf(issuer.city) }
+    var state by remember(issuer) { mutableStateOf(issuer.state) }
+    var imagePath by remember(issuer) { mutableStateOf(issuer.imagePath) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isSaving by remember { mutableStateOf(false) }
     var savedMessage by remember { mutableStateOf<String?>(null) }
@@ -267,8 +279,13 @@ fun SettingsScreen(
 
         Button(
             onClick = {
-                if (name.isBlank() || document.isBlank()) {
-                    errorMessage = context.getString(R.string.required_fields_error)
+                val validation = FormValidators.validateIssuer(
+                    name = name,
+                    document = document,
+                    phone = phone
+                )
+                if (!validation.isValid) {
+                    errorMessage = context.getValidationMessage(validation.errors.first())
                     savedMessage = null
                     return@Button
                 }
@@ -285,7 +302,7 @@ fun SettingsScreen(
                             }
                         } ?: imagePath
 
-                        val updatedUser = currentUser.copy(
+                        val updatedUser = issuer.copy(
                             name = name,
                             document = document,
                             phone = phone,
@@ -297,7 +314,7 @@ fun SettingsScreen(
                             imagePath = pathToSave
                         )
 
-                        SessionManager.updateUser(updatedUser)
+                        onSaveUser(updatedUser)
                         imagePath = pathToSave
                         selectedImageUri = null
                         savedMessage = context.getString(R.string.saved_data)
@@ -485,4 +502,18 @@ private fun clearFeedback(
 ) {
     clearSaved()
     clearError()
+}
+
+private fun android.content.Context.getValidationMessage(error: ValidationError): String {
+    return when (error) {
+        ValidationError.REQUIRED_NAME,
+        ValidationError.REQUIRED_DOCUMENT,
+        ValidationError.REQUIRED_ADDRESS,
+        ValidationError.EMPTY_ITEMS -> getString(R.string.required_fields_error)
+        ValidationError.INVALID_DOCUMENT -> getString(R.string.invalid_document_error)
+        ValidationError.INVALID_PHONE -> getString(R.string.invalid_phone_error)
+        ValidationError.INVALID_ITEM_DESCRIPTION -> getString(R.string.item_description_error)
+        ValidationError.INVALID_ITEM_QUANTITY -> getString(R.string.item_quantity_error)
+        ValidationError.INVALID_ITEM_PRICE -> getString(R.string.item_price_error)
+    }
 }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -22,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,29 +28,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.formatForBrl
-import com.example.florida.model.Budget
-import com.example.florida.model.Client
-import com.example.florida.model.Receipt
-import java.time.LocalDate
+import com.example.florida.domain.model.DashboardSummary
+import com.example.florida.domain.model.DocumentType
+import com.example.florida.domain.model.RecentDocumentSummary
+import com.example.florida.extensions.formatForBrl
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun Dashboard(
-    clients: List<Client>,
-    budgets: List<Budget>,
-    receipts: List<Receipt>,
+    summary: DashboardSummary,
     onOpenClients: () -> Unit,
     onOpenBudgets: () -> Unit,
     onOpenReceipts: () -> Unit,
     onCreateBudget: () -> Unit,
     onCreateReceipt: () -> Unit,
 ) {
-    val metrics = remember(clients, budgets, receipts) {
-        DashboardMetrics.from(clients, budgets, receipts)
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,7 +58,7 @@ fun Dashboard(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             MetricCard(
                 title = stringResource(R.string.received),
-                value = metrics.totalReceived.formatForBrl(),
+                value = summary.totalReceived.formatForBrl(),
                 subtitle = stringResource(R.string.in_receipts),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -75,7 +66,7 @@ fun Dashboard(
             )
             MetricCard(
                 title = stringResource(R.string.open_amount),
-                value = metrics.totalBudgeted.formatForBrl(),
+                value = summary.totalBudgeted.formatForBrl(),
                 subtitle = stringResource(R.string.in_budgets),
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -86,7 +77,7 @@ fun Dashboard(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             MetricCard(
                 title = stringResource(R.string.client),
-                value = metrics.clientCount.toString(),
+                value = summary.clientCount.toString(),
                 subtitle = stringResource(R.string.active_clients),
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -94,7 +85,7 @@ fun Dashboard(
             )
             MetricCard(
                 title = stringResource(R.string.this_month),
-                value = metrics.monthReceived.formatForBrl(),
+                value = summary.monthReceived.formatForBrl(),
                 subtitle = stringResource(R.string.received).lowercase(),
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -118,19 +109,19 @@ fun Dashboard(
                 QuickActionRow(
                     icon = Icons.Outlined.Person,
                     label = stringResource(R.string.client),
-                    value = stringResource(R.string.registered_clients, metrics.clientCount),
+                    value = stringResource(R.string.registered_clients, summary.clientCount),
                     onClick = onOpenClients
                 )
                 QuickActionRow(
                     icon = Icons.Outlined.Edit,
                     label = stringResource(R.string.budget),
-                    value = stringResource(R.string.created_budgets, metrics.budgetCount),
+                    value = stringResource(R.string.created_budgets, summary.budgetCount),
                     onClick = onOpenBudgets
                 )
                 QuickActionRow(
                     icon = Icons.Outlined.Done,
                     label = stringResource(R.string.receipt),
-                    value = stringResource(R.string.issued_receipts, metrics.receiptCount),
+                    value = stringResource(R.string.issued_receipts, summary.receiptCount),
                     onClick = onOpenReceipts
                 )
             }
@@ -163,7 +154,7 @@ fun Dashboard(
             }
         }
 
-        RecentDocumentsCard(metrics.recentDocuments)
+        RecentDocumentsCard(summary.recentDocuments)
     }
 }
 
@@ -232,7 +223,7 @@ private fun QuickActionRow(
 }
 
 @Composable
-private fun RecentDocumentsCard(documents: List<RecentDocument>) {
+private fun RecentDocumentsCard(documents: List<RecentDocumentSummary>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -267,14 +258,18 @@ private fun RecentDocumentsCard(documents: List<RecentDocument>) {
 }
 
 @Composable
-private fun RecentDocumentRow(document: RecentDocument) {
+private fun RecentDocumentRow(document: RecentDocumentSummary) {
+    val titleRes = when (document.type) {
+        DocumentType.BUDGET -> R.string.budget_number
+        DocumentType.RECEIPT -> R.string.receipt_number
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-            text = stringResource(document.titleRes, document.documentId),
+                text = stringResource(titleRes, document.documentId),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -295,64 +290,3 @@ private fun RecentDocumentRow(document: RecentDocument) {
         )
     }
 }
-
-private data class DashboardMetrics(
-    val clientCount: Int,
-    val budgetCount: Int,
-    val receiptCount: Int,
-    val totalBudgeted: Long,
-    val totalReceived: Long,
-    val monthReceived: Long,
-    val recentDocuments: List<RecentDocument>,
-) {
-    companion object {
-        fun from(
-            clients: List<Client>,
-            budgets: List<Budget>,
-            receipts: List<Receipt>,
-        ): DashboardMetrics {
-            val currentMonth = LocalDate.now().month
-            val currentYear = LocalDate.now().year
-            val recentBudgets = budgets.map {
-                RecentDocument(
-                    titleRes = R.string.budget_number,
-                    documentId = it.id,
-                    clientName = it.client?.name ?: "",
-                    total = it.total,
-                    createdAt = it.createdAt
-                )
-            }
-            val recentReceipts = receipts.map {
-                RecentDocument(
-                    titleRes = R.string.receipt_number,
-                    documentId = it.id,
-                    clientName = it.client?.name ?: "",
-                    total = it.total,
-                    createdAt = it.createdAt
-                )
-            }
-
-            return DashboardMetrics(
-                clientCount = clients.size,
-                budgetCount = budgets.size,
-                receiptCount = receipts.size,
-                totalBudgeted = budgets.sumOf { it.total },
-                totalReceived = receipts.sumOf { it.total },
-                monthReceived = receipts
-                    .filter { it.date.month == currentMonth && it.date.year == currentYear }
-                    .sumOf { it.total },
-                recentDocuments = (recentBudgets + recentReceipts)
-                    .sortedByDescending { it.createdAt }
-                    .take(4)
-            )
-        }
-    }
-}
-
-private data class RecentDocument(
-    val titleRes: Int,
-    val documentId: Long,
-    val clientName: String,
-    val total: Long,
-    val createdAt: LocalDateTime,
-)

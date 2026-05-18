@@ -18,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,18 +28,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.extencions.formatForBrl
-import com.example.florida.model.Budget
+import com.example.florida.domain.model.ClientDocumentSummary
+import com.example.florida.domain.model.DocumentType
+import com.example.florida.extensions.formatForBrl
 import com.example.florida.model.Client
-import com.example.florida.model.Receipt
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun ClientDetailScreen(
     client: Client?,
-    budgets: List<Budget>,
-    receipts: List<Receipt>,
+    documents: List<ClientDocumentSummary>,
     onEditClient: (Client) -> Unit,
     onCreateBudget: (Client) -> Unit,
     onCreateReceipt: (Client) -> Unit,
@@ -55,16 +51,14 @@ fun ClientDetailScreen(
         return
     }
 
-    val totalBudgeted = budgets.sumOf { it.total }
-    val totalReceived = receipts.sumOf { it.total }
-    val documents = buildList {
-        budgets.forEach {
-            add(ClientDocument(R.string.budget_number, it.id, it.createdAt, it.total))
-        }
-        receipts.forEach {
-            add(ClientDocument(R.string.receipt_number, it.id, it.date, it.total))
-        }
-    }.sortedByDescending { it.date }
+    val totalBudgeted = documents
+        .filter { it.type == DocumentType.BUDGET }
+        .sumOf { it.total }
+    val totalReceived = documents
+        .filter { it.type == DocumentType.RECEIPT }
+        .sumOf { it.total }
+    val budgetCount = documents.count { it.type == DocumentType.BUDGET }
+    val receiptCount = documents.count { it.type == DocumentType.RECEIPT }
 
     Column(
         modifier = modifier
@@ -111,13 +105,13 @@ fun ClientDetailScreen(
             SummaryCard(
                 title = stringResource(R.string.budgeted),
                 value = totalBudgeted.formatForBrl(),
-                subtitle = stringResource(R.string.budget_count, budgets.size),
+                subtitle = stringResource(R.string.budget_count, budgetCount),
                 modifier = Modifier.weight(1f)
             )
             SummaryCard(
                 title = stringResource(R.string.received),
                 value = totalReceived.formatForBrl(),
-                subtitle = stringResource(R.string.receipt_count, receipts.size),
+                subtitle = stringResource(R.string.receipt_count, receiptCount),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -137,36 +131,7 @@ fun ClientDetailScreen(
             }
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.customer_history),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                if (documents.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.empty_customer_documents),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    documents.forEachIndexed { index, document ->
-                        HistoryRow(document)
-                        if (index < documents.lastIndex) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        }
-                    }
-                }
-            }
-        }
+        ClientDocumentList(documents = documents)
 
         Spacer(Modifier.height(12.dp))
     }
@@ -205,28 +170,3 @@ private fun SummaryCard(
         }
     }
 }
-
-@Composable
-private fun HistoryRow(document: ClientDocument) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(stringResource(document.titleRes, document.documentId), fontWeight = FontWeight.SemiBold)
-            Text(
-                document.date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Text(document.total.formatForBrl(), fontWeight = FontWeight.SemiBold)
-    }
-}
-
-private data class ClientDocument(
-    val titleRes: Int,
-    val documentId: Long,
-    val date: LocalDateTime,
-    val total: Long,
-)

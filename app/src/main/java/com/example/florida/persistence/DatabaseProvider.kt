@@ -3,10 +3,11 @@ package com.example.florida.persistence
 import android.content.Context
 import androidx.room.Room
 import com.example.florida.persistence.migration.AppMigrations
-import com.example.florida.persistence.reposity.BudgetRepository
-import com.example.florida.persistence.reposity.ClientRepository
-import com.example.florida.persistence.reposity.ReceiptRepository
-import com.example.florida.persistence.reposity.UserRepository
+import com.example.florida.persistence.repository.BudgetRepository
+import com.example.florida.persistence.repository.ClientRepository
+import com.example.florida.persistence.repository.DashboardRepository
+import com.example.florida.persistence.repository.ReceiptRepository
+import com.example.florida.persistence.repository.UserRepository
 
 object DatabaseProvider {
     private var database: AppDatabase? = null
@@ -48,5 +49,15 @@ object DatabaseProvider {
     fun getReceiptRepository(context: Context): ReceiptRepository {
         val db = getDatabase(context)
         return ReceiptRepository(db.receiptDao())
+    }
+
+    fun getDashboardRepository(context: Context): DashboardRepository {
+        val db = getDatabase(context)
+        return DashboardRepository(
+            clientDao = db.clientDao(),
+            budgetDao = db.budgetDao(),
+            receiptDao = db.receiptDao(),
+            dashboardDao = db.dashboardDao()
+        )
     }
 }
