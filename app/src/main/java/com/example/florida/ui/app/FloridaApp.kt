@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.florida.model.UserSetup
 import com.example.florida.ui.home.ErrorScreen
 import com.example.florida.ui.home.SplashScreen
 import com.example.florida.ui.navigation.AppNavigator
@@ -20,19 +21,31 @@ fun FloridaApp() {
     )
     val state by sessionViewModel.sessionState.collectAsStateWithLifecycle()
 
+    FloridaAppContent(
+        state = state,
+        onSaveUser = sessionViewModel::saveUser,
+        onRetry = sessionViewModel::retry
+    )
+}
+
+@Composable
+private fun FloridaAppContent(
+    state: SessionViewModel.SessionState,
+    onSaveUser: (UserSetup) -> Unit,
+    onRetry: () -> Unit,
+) {
     when (state) {
         SessionViewModel.SessionState.Loading -> SplashScreen()
         SessionViewModel.SessionState.NoUser -> {
             OnboardingScreen(
-                onSaveUser = sessionViewModel::saveUser
+                onSaveUser = onSaveUser
             )
         }
         is SessionViewModel.SessionState.Logged -> AppWithNavigation()
         is SessionViewModel.SessionState.Error -> {
-            val errorState = state as SessionViewModel.SessionState.Error
             ErrorScreen(
-                message = errorState.message,
-                onRetry = sessionViewModel::retry
+                message = state.message,
+                onRetry = onRetry
             )
         }
     }
