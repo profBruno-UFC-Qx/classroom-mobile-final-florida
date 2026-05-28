@@ -59,10 +59,15 @@ class SessionViewModel(
         actions.tryEmit(SessionAction.Refresh)
     }
 
+    fun logout() {
+        actions.tryEmit(SessionAction.Logout)
+    }
+
     private suspend fun handleAction(action: SessionAction) {
         when (action) {
             is SessionAction.SaveUser -> userRepository.saveUser(action.userSetup)
             is SessionAction.UpdateUser -> userRepository.updateUser(action.userSetup)
+            SessionAction.Logout -> userRepository.deleteUser()
             SessionAction.Refresh -> userRepository.getUserSetup()
         }
     }
@@ -70,6 +75,7 @@ class SessionViewModel(
     private sealed interface SessionAction {
         data class SaveUser(val userSetup: UserSetup) : SessionAction
         data class UpdateUser(val userSetup: UserSetup) : SessionAction
+        data object Logout : SessionAction
         data object Refresh : SessionAction
     }
 

@@ -8,6 +8,9 @@
     <string name="no_image">Nenhuma imagem</string>
     <string name="continue_button">Continuar</string>
     <string name="logout">Sair</string>
+    <string name="account">Conta</string>
+    <string name="logout_help">Remove os dados do emissor deste aparelho e volta para o cadastro inicial.</string>
+    <string name="logout_question">Tem certeza que deseja sair e refazer o cadastro do emissor?</string>
     <string name="home">Home</string>
     <string name="person_icon">Icone da tela cliente</string>
     <string name="budget_icon">Icone da tela orçamento</string>

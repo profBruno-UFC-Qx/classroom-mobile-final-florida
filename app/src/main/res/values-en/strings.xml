@@ -8,6 +8,9 @@
     <string name="no_image">No image</string>
     <string name="continue_button">Continue</string>
     <string name="logout">Log out</string>
+    <string name="account">Account</string>
+    <string name="logout_help">Removes issuer data from this device and returns to the initial setup.</string>
+    <string name="logout_question">Are you sure you want to log out and redo the issuer setup?</string>
     <string name="home">Home</string>
     <string name="person_icon">Client screen icon</string>
     <string name="budget_icon">Budget screen icon</string>

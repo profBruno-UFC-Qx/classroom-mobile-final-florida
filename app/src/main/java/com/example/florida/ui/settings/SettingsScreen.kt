@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,6 +32,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -67,6 +69,7 @@ import kotlinx.coroutines.withContext
 fun SettingsScreen(
     currentUser: UserSetup?,
     onSaveUser: (UserSetup) -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val issuer = currentUser
@@ -96,6 +99,7 @@ fun SettingsScreen(
     var isSaving by remember { mutableStateOf(false) }
     var savedMessage by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     val selectedBitmap = rememberBitmapFromUri(selectedImageUri)
     val savedBitmap = rememberBitmapFromPath(imagePath)
@@ -344,6 +348,41 @@ fun SettingsScreen(
         FeedbackMessage(
             savedMessage = savedMessage,
             errorMessage = errorMessage
+        )
+
+        SettingsSection(
+            title = stringResource(R.string.account),
+            description = stringResource(R.string.logout_help)
+        ) {
+            OutlinedButton(
+                onClick = { showLogoutConfirm = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.logout))
+            }
+        }
+    }
+
+    if (showLogoutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showLogoutConfirm = false },
+            title = { Text(stringResource(R.string.logout)) },
+            text = { Text(stringResource(R.string.logout_question)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutConfirm = false
+                        onLogout()
+                    }
+                ) {
+                    Text(stringResource(R.string.logout))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutConfirm = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
         )
     }
 }

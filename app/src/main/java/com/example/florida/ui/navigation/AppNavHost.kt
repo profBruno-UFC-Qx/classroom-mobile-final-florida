@@ -62,6 +62,7 @@ fun AppNavHost(
     onReceiptToEditChange: (Receipt?) -> Unit,
     onPendingBudgetPdfIdChange: (Long?) -> Unit,
     onPendingReceiptPdfIdChange: (Long?) -> Unit,
+    onLogout: () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -176,7 +177,8 @@ fun AppNavHost(
         composable(Route.Settings.route) {
             SettingsScreen(
                 currentUser = currentUser,
-                onSaveUser = appViewModel::updateUser
+                onSaveUser = appViewModel::updateUser,
+                onLogout = onLogout
             )
         }
         composable(Route.Client.route) {

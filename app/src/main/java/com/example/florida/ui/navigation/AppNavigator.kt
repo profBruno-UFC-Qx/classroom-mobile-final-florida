@@ -28,7 +28,8 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun AppNavigator(
-    navController: NavHostController
+    navController: NavHostController,
+    onLogout: () -> Unit,
 ) {
     val context = LocalContext.current
     val appViewModel: AppNavigatorViewModel = viewModel(
@@ -147,6 +148,7 @@ fun AppNavigator(
             onReceiptToEditChange = { receiptToEdit = it },
             onPendingBudgetPdfIdChange = { pendingBudgetPdfId = it },
             onPendingReceiptPdfIdChange = { pendingReceiptPdfId = it },
+            onLogout = onLogout,
         )
     }
 

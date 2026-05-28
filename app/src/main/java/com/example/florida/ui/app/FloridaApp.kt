@@ -24,6 +24,7 @@ fun FloridaApp() {
     FloridaAppContent(
         state = state,
         onSaveUser = sessionViewModel::saveUser,
+        onLogout = sessionViewModel::logout,
         onRetry = sessionViewModel::retry
     )
 }
@@ -32,6 +33,7 @@ fun FloridaApp() {
 private fun FloridaAppContent(
     state: SessionViewModel.SessionState,
     onSaveUser: (UserSetup) -> Unit,
+    onLogout: () -> Unit,
     onRetry: () -> Unit,
 ) {
     when (state) {
@@ -41,7 +43,7 @@ private fun FloridaAppContent(
                 onSaveUser = onSaveUser
             )
         }
-        is SessionViewModel.SessionState.Logged -> AppWithNavigation()
+        is SessionViewModel.SessionState.Logged -> AppWithNavigation(onLogout = onLogout)
         is SessionViewModel.SessionState.Error -> {
             ErrorScreen(
                 message = state.message,
@@ -52,8 +54,13 @@ private fun FloridaAppContent(
 }
 
 @Composable
-private fun AppWithNavigation() {
+private fun AppWithNavigation(
+    onLogout: () -> Unit,
+) {
     val navController = rememberNavController()
 
-    AppNavigator(navController = navController)
+    AppNavigator(
+        navController = navController,
+        onLogout = onLogout
+    )
 }
