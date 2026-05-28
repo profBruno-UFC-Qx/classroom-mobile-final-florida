@@ -5,65 +5,14 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
 import com.example.florida.R
 import com.example.florida.model.UserSetup
-import com.example.florida.ui.navigation.AppNavigator
-import com.example.florida.ui.onboarding.OnboardingScreen
-import com.example.florida.ui.session.SessionViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-
-@Composable
-fun MainApp() {
-    val context = LocalContext.current
-    val sessionViewModel: SessionViewModel = viewModel(
-        factory = SessionViewModel.factory(context)
-    )
-    val state by sessionViewModel.sessionState.collectAsState()
-
-    when (state) {
-        SessionViewModel.SessionState.Loading -> {
-            SplashScreen()
-        }
-        SessionViewModel.SessionState.NoUser -> {
-            OnboardingScreen(
-                onSaveUser = sessionViewModel::saveUser
-            )
-        }
-        is SessionViewModel.SessionState.Logged -> {
-            AppWithNavigation()
-        }
-        is SessionViewModel.SessionState.Error -> {
-            val errorState = state as SessionViewModel.SessionState.Error
-            ErrorScreen(
-                message = errorState.message,
-                onRetry = { sessionViewModel.retry() }
-            )
-        }
-    }
-
-}
-
-@Composable
-fun AppWithNavigation() {
-    val navController = rememberNavController()
-
-    AppNavigator(
-        navController = navController,
-//        onLogout = {
-//            navController.navigate(Route.Home.route) {
-//                popUpTo(Route.Home.route) { inclusive = true }
-//            }
-//        }
-    )
-}
 
 @Composable
 fun UserProfileCard(user: UserSetup?) {
