@@ -1,9 +1,9 @@
 package com.example.florida.ui.app
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.florida.ui.home.ErrorScreen
@@ -18,7 +18,7 @@ fun FloridaApp() {
     val sessionViewModel: SessionViewModel = viewModel(
         factory = SessionViewModel.factory(context)
     )
-    val state by sessionViewModel.sessionState.collectAsState()
+    val state by sessionViewModel.sessionState.collectAsStateWithLifecycle()
 
     when (state) {
         SessionViewModel.SessionState.Loading -> SplashScreen()
