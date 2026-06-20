@@ -2,7 +2,6 @@
 
 > Aplicativo Android para digitalização e gerenciamento de orçamentos e recibos, com geração de PDF e armazenamento local.
 
-
 ## :bulb: Objetivo Geral
 Desenvolver um aplicativo mobile para a plataforma Android, utilizando **Kotlin**, que permita o cadastro de clientes e o gerenciamento completo de orçamentos e recibos, com exportação de documentos em formato **PDF** e armazenamento local dos dados no dispositivo do usuário — funcionando totalmente offline.
 
@@ -27,36 +26,36 @@ Com a digitalização do processo de criação de orçamentos e recibos, espera-
 
 ## :triangular_flag_on_post:	 Principais funcionalidades da aplicação
 
-| Funcionalidade | Descrição |
-|---|---|
-| 📋 Cadastro de Clientes | Registrar e gerenciar informações dos clientes |
-| 💰 Orçamentos | Criar, editar e acompanhar orçamentos |
-| 🧾 Recibos | Gerar recibos vinculados a orçamentos aprovados |
-| 📄 Exportação em PDF | Exportar documentos formatados prontos para envio |
-| 📱 Armazenamento Local | Dados salvos no dispositivo, sem necessidade de internet |
-| 🔍 Listagem e Busca | Visualizar e filtrar registros cadastrados |
-| ✏️ Edição e Exclusão | Gerenciar e atualizar todos os dados cadastrados | 
+| Funcionalidade          | Descrição                                                |
+|-------------------------|----------------------------------------------------------|
+| 📋 Cadastro de Clientes | Registrar e gerenciar informações dos clientes           |
+| 💰 Orçamentos           | Criar, editar e acompanhar orçamentos                    |
+| 🧾 Recibos              | Gerar recibos vinculados a orçamentos aprovados          |
+| 📄 Exportação em PDF    | Exportar documentos formatados prontos para envio        |
+| 📱 Armazenamento Local  | Dados salvos no dispositivo, sem necessidade de internet |
+| 🔍 Listagem e Busca     | Visualizar e filtrar registros cadastrados               |
+| ✏️ Edição e Exclusão    | Gerenciar e atualizar todos os dados cadastrados         | 
 
 
 ## :hammer_and_wrench: Tecnologias
 
 O projeto utiliza uma stack Android moderna, com foco em funcionamento offline, persistência local e interface declarativa.
 
-| Tecnologia | Uso no projeto |
-|---|---|
-| **Kotlin** | Linguagem principal da aplicação |
-| **Android SDK** | Plataforma nativa do aplicativo |
-| **Jetpack Compose** | Construção das telas e componentes visuais |
-| **Material 3** | Componentes de UI, tema, cards, botões, barras e diálogos |
+| Tecnologia             | Uso no projeto                                                                          |
+|------------------------|-----------------------------------------------------------------------------------------|
+| **Kotlin**             | Linguagem principal da aplicação                                                        |
+| **Android SDK**        | Plataforma nativa do aplicativo                                                         |
+| **Jetpack Compose**    | Construção das telas e componentes visuais                                              |
+| **Material 3**         | Componentes de UI, tema, cards, botões, barras e diálogos                               |
 | **Navigation Compose** | Navegação entre Home, Clientes, Orçamentos, Recibos, Configurações e Detalhe de Cliente |
-| **Room** | Banco de dados local SQLite com DAOs, entidades, relações e migrations |
-| **KSP** | Processamento de anotações do Room |
-| **Kotlin Coroutines** | Execução assíncrona de operações de banco e estado |
-| **Flow / StateFlow** | Observação reativa de dados locais |
-| **ViewModel** | Retenção de estado e mediação entre UI e repositórios |
-| **PdfDocument** | Geração nativa de PDFs de orçamento e recibo |
-| **FileProvider** | Compartilhamento seguro dos PDFs com outros apps |
-| **Android Resources** | Centralização de textos e suporte a internacionalização |
+| **Room**               | Banco de dados local SQLite com DAOs, entidades, relações e migrations                  |
+| **KSP**                | Processamento de anotações do Room                                                      |
+| **Kotlin Coroutines**  | Execução assíncrona de operações de banco e estado                                      |
+| **Flow / StateFlow**   | Observação reativa de dados locais                                                      |
+| **ViewModel**          | Retenção de estado e mediação entre UI e repositórios                                   |
+| **PdfDocument**        | Geração nativa de PDFs de orçamento e recibo                                            |
+| **FileProvider**       | Compartilhamento seguro dos PDFs com outros apps                                        |
+| **Android Resources**  | Centralização de textos e suporte a internacionalização                                 |
 
 ## :building_construction: Arquitetura Atual
 
@@ -107,25 +106,25 @@ Responsabilidades:
 
 Pastas principais:
 
-| Pasta | Responsabilidade |
-|---|---|
-| `ui/home` | Home, dashboard inicial e cartão de perfil |
-| `ui/client` | Lista, card, criação, edição e detalhe de cliente |
-| `ui/budget` | Listagem e criação de orçamentos |
-| `ui/receipt` | Listagem e criação de recibos |
-| `ui/settings` | Configuração dos dados do emissor |
+| Pasta              | Responsabilidade                                                    |
+|--------------------|---------------------------------------------------------------------|
+| `ui/home`          | Home, dashboard inicial e cartão de perfil                          |
+| `ui/client`        | Lista, card, criação, edição e detalhe de cliente                   |
+| `ui/budget`        | Listagem e criação de orçamentos                                    |
+| `ui/receipt`       | Listagem e criação de recibos                                       |
+| `ui/settings`      | Configuração dos dados do emissor                                   |
 | `ui/AppNavigation` | Rotas, bottom navigation, scaffold e ViewModel central de navegação |
-| `ui/utils` | Utilitários de UI/PDF, máscaras e compartilhamento |
-| `ui/theme` | Tema Material 3, cores e tipografia |
+| `ui/utils`         | Utilitários de UI/PDF, máscaras e compartilhamento                  |
+| `ui/theme`         | Tema Material 3, cores e tipografia                                 |
 
 ### Camada de Estado
 
 Hoje existem dois pontos principais de estado:
 
-| Componente | Responsabilidade |
-|---|---|
+| Componente              | Responsabilidade                                                                  |
+|-------------------------|-----------------------------------------------------------------------------------|
 | `AppNavigatorViewModel` | Observa clientes, orçamentos e recibos; cria, edita, exclui e atualiza documentos |
-| `SessionManager` | Mantém o estado do usuário configurado no app |
+| `SessionManager`        | Mantém o estado do usuário configurado no app                                     |
 
 Observação importante:
 
@@ -142,13 +141,13 @@ app/src/main/java/com/example/florida/model
 
 Modelos principais:
 
-| Modelo | Uso |
-|---|---|
-| `Client` | Representa cliente do usuário |
-| `Budget` | Representa orçamento com cliente, itens, total e status |
-| `Receipt` | Representa recibo com cliente, itens e total |
-| `Item` | Item de serviço usado em orçamento e recibo |
-| `UserSetup` | Dados do emissor usados nos PDFs |
+| Modelo         | Uso                                                                   |
+|----------------|-----------------------------------------------------------------------|
+| `Client`       | Representa cliente do usuário                                         |
+| `Budget`       | Representa orçamento com cliente, itens, total e status               |
+| `Receipt`      | Representa recibo com cliente, itens e total                          |
+| `Item`         | Item de serviço usado em orçamento e recibo                           |
+| `UserSetup`    | Dados do emissor usados nos PDFs                                      |
 | `BudgetStatus` | Status do orçamento: rascunho, enviado, aprovado, recusado e expirado |
 
 ### Camada de Persistência
@@ -170,16 +169,16 @@ Responsabilidades:
 
 Pastas principais:
 
-| Pasta/Arquivo | Responsabilidade |
-|---|---|
-| `AppDatabase.kt` | Configuração principal do Room |
-| `DatabaseProvider.kt` | Criação singleton do banco e repositórios |
-| `Entity` | Entidades Room persistidas |
-| `dao` | Consultas e comandos SQL via Room |
-| `relations` | Relações Room, como orçamento com itens e cliente |
-| `reposity` | Repositórios usados pela camada de estado |
-| `migration` | Migrations versionadas do banco |
-| `ImageStorage.kt` | Persistência local de imagens selecionadas |
+| Pasta/Arquivo         | Responsabilidade                                  |
+|-----------------------|---------------------------------------------------|
+| `AppDatabase.kt`      | Configuração principal do Room                    |
+| `DatabaseProvider.kt` | Criação singleton do banco e repositórios         |
+| `Entity`              | Entidades Room persistidas                        |
+| `dao`                 | Consultas e comandos SQL via Room                 |
+| `relations`           | Relações Room, como orçamento com itens e cliente |
+| `reposity`            | Repositórios usados pela camada de estado         |
+| `migration`           | Migrations versionadas do banco                   |
+| `ImageStorage.kt`     | Persistência local de imagens selecionadas        |
 
 ### Banco de Dados Local
 
@@ -257,16 +256,16 @@ ui/AppNavigation/AppNavigation.kt
 
 Rotas atuais:
 
-| Rota | Tela |
-|---|---|
-| `home` | Dashboard inicial |
-| `clients` | Lista de clientes |
-| `clients/{clientId}` | Detalhe de cliente |
-| `budget` | Lista/criação de orçamentos |
-| `budget/{budgetId}` | Detalhe de orçamento |
-| `receipt` | Lista/criação de recibos |
-| `receipt/{receiptId}` | Detalhe de recibo |
-| `settings` | Configurações do emissor |
+| Rota                  | Tela                        |
+|-----------------------|-----------------------------|
+| `home`                | Dashboard inicial           |
+| `clients`             | Lista de clientes           |
+| `clients/{clientId}`  | Detalhe de cliente          |
+| `budget`              | Lista/criação de orçamentos |
+| `budget/{budgetId}`   | Detalhe de orçamento        |
+| `receipt`             | Lista/criação de recibos    |
+| `receipt/{receiptId}` | Detalhe de recibo           |
+| `settings`            | Configurações do emissor    |
 
 ### Funcionalidades Implementadas Atualmente
 
