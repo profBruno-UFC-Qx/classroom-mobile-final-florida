@@ -1,4 +1,4 @@
-package com.example.florida.model
+package com.example.florida.domain.model
 
 data class Item (
     val id: Long = 0,

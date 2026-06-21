@@ -35,9 +35,9 @@ import com.example.florida.domain.validation.FormValidators
 import com.example.florida.domain.validation.ValidationError
 import com.example.florida.extensions.currencyDigitsToCents
 import com.example.florida.extensions.formatForBrl
-import com.example.florida.model.Client
-import com.example.florida.model.Item
-import com.example.florida.model.Receipt
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.Item
+import com.example.florida.domain.model.Receipt
 import com.example.florida.ui.utils.CurrencyVisualTransformation
 import kotlin.collections.forEach
 import androidx.compose.foundation.lazy.items as lazyItems

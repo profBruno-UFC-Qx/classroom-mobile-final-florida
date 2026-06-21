@@ -13,10 +13,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
 import com.example.florida.domain.model.BudgetListItem
-import com.example.florida.model.BudgetStatus
-import com.example.florida.model.Client
-import com.example.florida.model.Item
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.BudgetStatus
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.Item
+import com.example.florida.domain.model.UserSetup
 
 @Composable
 fun BudgetScreen(

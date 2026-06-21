@@ -1,4 +1,4 @@
-package com.example.florida.model
+package com.example.florida.domain.model
 
 import androidx.annotation.StringRes
 import com.example.florida.R

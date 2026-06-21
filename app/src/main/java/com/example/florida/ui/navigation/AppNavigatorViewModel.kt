@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.repository.UserRepository
 import kotlinx.coroutines.channels.BufferOverflow

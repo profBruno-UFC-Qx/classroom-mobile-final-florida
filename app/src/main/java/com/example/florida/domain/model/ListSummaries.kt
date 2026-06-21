@@ -1,6 +1,5 @@
 package com.example.florida.domain.model
 
-import com.example.florida.model.BudgetStatus
 import java.time.LocalDateTime
 
 data class ClientListItem(

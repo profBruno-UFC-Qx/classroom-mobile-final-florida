@@ -1,5 +1,6 @@
 package com.example.florida.model
 
+import com.example.florida.domain.model.Item
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

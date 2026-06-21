@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.ClientDocumentSummary
 import com.example.florida.domain.model.ClientListItem
-import com.example.florida.model.Client
+import com.example.florida.domain.model.Client
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.repository.ClientRepository
 import kotlinx.coroutines.channels.BufferOverflow

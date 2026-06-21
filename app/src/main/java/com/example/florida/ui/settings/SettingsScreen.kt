@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -57,7 +55,7 @@ import com.example.florida.domain.validation.FormValidators
 import com.example.florida.domain.validation.ValidationError
 import com.example.florida.extensions.normalizeCpfCnpjInput
 import com.example.florida.extensions.normalizePhoneInput
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
 import com.example.florida.ui.utils.PhoneVisualTransformation

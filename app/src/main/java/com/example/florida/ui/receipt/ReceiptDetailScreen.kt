@@ -29,9 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
 import com.example.florida.extensions.formatForBrl
-import com.example.florida.model.Budget
-import com.example.florida.model.Receipt
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.Budget
+import com.example.florida.domain.model.Receipt
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.document.pdf.ReceiptPdfCreate
 import com.example.florida.document.pdf.sharePdf
 import java.time.format.DateTimeFormatter

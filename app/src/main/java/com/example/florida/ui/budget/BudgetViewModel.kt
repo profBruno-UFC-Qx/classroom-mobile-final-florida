@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.BudgetListItem
-import com.example.florida.model.Budget
-import com.example.florida.model.BudgetStatus
-import com.example.florida.model.Item
+import com.example.florida.domain.model.Budget
+import com.example.florida.domain.model.BudgetStatus
+import com.example.florida.domain.model.Item
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.repository.BudgetRepository
 import com.example.florida.persistence.repository.ReceiptRepository

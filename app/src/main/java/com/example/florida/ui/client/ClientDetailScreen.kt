@@ -31,7 +31,7 @@ import com.example.florida.R
 import com.example.florida.domain.model.ClientDocumentSummary
 import com.example.florida.domain.model.DocumentType
 import com.example.florida.extensions.formatForBrl
-import com.example.florida.model.Client
+import com.example.florida.domain.model.Client
 
 @Composable
 fun ClientDetailScreen(

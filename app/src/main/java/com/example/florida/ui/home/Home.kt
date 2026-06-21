@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.UserSetup
 
 @Composable
 fun UserProfileCard(user: UserSetup?) {

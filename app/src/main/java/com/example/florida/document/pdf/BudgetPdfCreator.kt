@@ -19,9 +19,9 @@ import com.example.florida.constants.PaintPdf.titlePaint
 import com.example.florida.extensions.cpfCnpjTranformer
 import com.example.florida.extensions.formatForBrl
 import com.example.florida.extensions.phoneTranformer
-import com.example.florida.model.Client
-import com.example.florida.model.UserSetup
-import com.example.florida.model.Item
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.UserSetup
+import com.example.florida.domain.model.Item
 import java.io.File
 import java.time.LocalDate
 import java.time.OffsetDateTime

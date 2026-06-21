@@ -6,7 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.ui.home.ErrorScreen
 import com.example.florida.ui.home.SplashScreen
 import com.example.florida.ui.navigation.AppNavigator

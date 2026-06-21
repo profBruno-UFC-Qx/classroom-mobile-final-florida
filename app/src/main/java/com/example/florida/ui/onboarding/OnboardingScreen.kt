@@ -50,7 +50,7 @@ import com.example.florida.domain.validation.FormValidators
 import com.example.florida.domain.validation.ValidationError
 import com.example.florida.extensions.normalizeCpfCnpjInput
 import com.example.florida.extensions.normalizePhoneInput
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
 import com.example.florida.ui.utils.PhoneVisualTransformation

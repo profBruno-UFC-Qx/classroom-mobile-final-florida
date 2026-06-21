@@ -1,9 +1,9 @@
 package com.example.florida.ui.navigation
 
 import androidx.compose.runtime.Composable
-import com.example.florida.model.Budget
-import com.example.florida.model.Client
-import com.example.florida.model.Receipt
+import com.example.florida.domain.model.Budget
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.Receipt
 import com.example.florida.ui.budget.BudgetViewModel
 import com.example.florida.ui.budget.BudgetFormDialog
 import com.example.florida.ui.client.ClientViewModel

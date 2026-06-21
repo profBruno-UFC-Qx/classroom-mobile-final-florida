@@ -1,4 +1,4 @@
-package com.example.florida.model
+package com.example.florida.domain.model
 
 import java.time.LocalDateTime
 

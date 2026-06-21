@@ -1,6 +1,6 @@
 package com.example.florida.domain.validation
 
-import com.example.florida.model.Item
+import com.example.florida.domain.model.Item
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

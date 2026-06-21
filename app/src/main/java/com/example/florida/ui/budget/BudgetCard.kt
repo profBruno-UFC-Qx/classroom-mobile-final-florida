@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.example.florida.R
 import com.example.florida.domain.model.BudgetListItem
 import com.example.florida.extensions.formatForBrl
-import com.example.florida.model.BudgetStatus
+import com.example.florida.domain.model.BudgetStatus
 import java.time.format.DateTimeFormatter
 
 @Composable

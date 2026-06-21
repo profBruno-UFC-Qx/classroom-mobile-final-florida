@@ -24,9 +24,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
 import com.example.florida.domain.validation.FormValidators
-import com.example.florida.model.Budget
-import com.example.florida.model.Client
-import com.example.florida.model.Item
+import com.example.florida.domain.model.Budget
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.Item
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

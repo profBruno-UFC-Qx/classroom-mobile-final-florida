@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.ReceiptListItem
-import com.example.florida.model.Item
-import com.example.florida.model.Receipt
+import com.example.florida.domain.model.Item
+import com.example.florida.domain.model.Receipt
 import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.repository.ReceiptRepository
 import kotlinx.coroutines.channels.BufferOverflow

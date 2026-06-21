@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.florida.R
 import com.example.florida.domain.model.ClientListItem
-import com.example.florida.model.Client
+import com.example.florida.domain.model.Client
 
 @Composable
 fun ClientScreen(

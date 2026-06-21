@@ -1,6 +1,6 @@
 package com.example.florida.persistence.repository
 
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.persistence.entity.UserEntity
 import com.example.florida.persistence.dao.UserDao
 import kotlinx.coroutines.Dispatchers

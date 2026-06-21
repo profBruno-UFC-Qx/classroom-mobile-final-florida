@@ -1,9 +1,9 @@
 package com.example.florida.persistence.repository
 
 import com.example.florida.domain.model.ReceiptListItem
-import com.example.florida.model.Client
-import com.example.florida.model.Item
-import com.example.florida.model.Receipt
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.Item
+import com.example.florida.domain.model.Receipt
 import com.example.florida.persistence.entity.ClientEntity
 import com.example.florida.persistence.entity.ReceiptEntity
 import com.example.florida.persistence.entity.ReceiptItemEntity

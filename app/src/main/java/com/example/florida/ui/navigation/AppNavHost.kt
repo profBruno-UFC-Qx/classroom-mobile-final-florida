@@ -16,10 +16,10 @@ import com.example.florida.domain.model.ClientDocumentSummary
 import com.example.florida.domain.model.ClientListItem
 import com.example.florida.domain.model.DashboardSummary
 import com.example.florida.domain.model.ReceiptListItem
-import com.example.florida.model.Budget
-import com.example.florida.model.Client
-import com.example.florida.model.Receipt
-import com.example.florida.model.UserSetup
+import com.example.florida.domain.model.Budget
+import com.example.florida.domain.model.Client
+import com.example.florida.domain.model.Receipt
+import com.example.florida.domain.model.UserSetup
 import com.example.florida.ui.budget.BudgetDetailScreen
 import com.example.florida.ui.budget.BudgetScreen
 import com.example.florida.ui.budget.BudgetViewModel

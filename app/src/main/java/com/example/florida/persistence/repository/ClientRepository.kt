@@ -3,7 +3,7 @@ package com.example.florida.persistence.repository
 import com.example.florida.domain.model.ClientDocumentSummary
 import com.example.florida.domain.model.ClientListItem
 import com.example.florida.domain.model.DocumentType
-import com.example.florida.model.Client
+import com.example.florida.domain.model.Client
 import com.example.florida.persistence.entity.ClientEntity
 import com.example.florida.persistence.dao.ClientDao
 import com.example.florida.persistence.projection.ClientDocumentProjection

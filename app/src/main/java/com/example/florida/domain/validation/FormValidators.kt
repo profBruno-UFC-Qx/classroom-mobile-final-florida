@@ -1,6 +1,6 @@
 package com.example.florida.domain.validation
 
-import com.example.florida.model.Item
+import com.example.florida.domain.model.Item
 
 data class ValidationResult(
     val isValid: Boolean,
