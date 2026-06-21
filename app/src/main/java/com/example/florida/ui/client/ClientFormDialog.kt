@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,11 +22,6 @@ import com.example.florida.domain.validation.ValidationError
 import com.example.florida.extensions.normalizeCpfCnpjInput
 import com.example.florida.extensions.normalizePhoneInput
 import com.example.florida.domain.model.Client
-import com.example.florida.persistence.ImageStorage
-import com.example.florida.ui.home.SplashScreen
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun ClientFormDialog(
@@ -37,7 +31,7 @@ fun ClientFormDialog(
         document: String,
         phone: String,
         address: String,
-        imagePath: String?
+        imageUri: Uri?
     ) -> Unit,
     client: Client? = null,
     modifier: Modifier = Modifier
@@ -48,7 +42,6 @@ fun ClientFormDialog(
     var phone by remember(client) { mutableStateOf(client?.phone.orEmpty().normalizePhoneInput()) }
     var address by remember(client) { mutableStateOf(client?.address.orEmpty()) }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val scope = rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -56,7 +49,6 @@ fun ClientFormDialog(
     }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
 
     AlertDialog(
         modifier = modifier,
@@ -80,7 +72,6 @@ fun ClientFormDialog(
         },
         confirmButton = {
             Button(
-                enabled = !isLoading,
                 onClick = {
                     val validation = FormValidators.validateClient(
                         name = name,
@@ -92,28 +83,13 @@ fun ClientFormDialog(
                         errorMessage = context.getValidationMessage(validation.errors.first())
                         return@Button
                     }
-                    scope.launch(Dispatchers.Default) {
-                        isLoading = true
-                        try {
-                            val imagePath = imageUri?.let { uri ->
-                                withContext(Dispatchers.IO) {
-                                    ImageStorage.saveImage(context, uri)
-                                }
-                            } ?: client?.imagePath
-                            onConfirm(
-                                name,
-                                document,
-                                phone,
-                                address,
-                                imagePath
-                            )
-
-                        } catch (e: Exception) {
-                            errorMessage = context.getString(R.string.save_error, e.message ?: "")
-                        } finally {
-                            isLoading = false
-                        }
-                    }
+                    onConfirm(
+                        name,
+                        document,
+                        phone,
+                        address,
+                        imageUri
+                    )
                  }
             ) { Text(stringResource(R.string.save)) }
         },
@@ -123,9 +99,6 @@ fun ClientFormDialog(
             }
         }
     )
-    if (isLoading) {
-        SplashScreen()
-    }
 }
 
 private fun android.content.Context.getValidationMessage(error: ValidationError): String {

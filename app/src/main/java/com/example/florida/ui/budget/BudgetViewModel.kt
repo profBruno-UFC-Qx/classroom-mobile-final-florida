@@ -6,8 +6,10 @@ import com.example.florida.domain.model.BudgetListItem
 import com.example.florida.domain.model.Budget
 import com.example.florida.domain.model.BudgetStatus
 import com.example.florida.domain.model.Item
+import com.example.florida.document.pdf.PdfShareService
 import com.example.florida.persistence.repository.BudgetRepository
 import com.example.florida.persistence.repository.ReceiptRepository
+import com.example.florida.persistence.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +29,8 @@ import javax.inject.Inject
 class BudgetViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
     private val receiptRepository: ReceiptRepository,
+    private val userRepository: UserRepository,
+    private val pdfShareService: PdfShareService,
 ) : ViewModel() {
     val budgets: StateFlow<List<BudgetListItem>> = budgetRepository.observeBudgetListItems()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -87,6 +91,10 @@ class BudgetViewModel @Inject constructor(
         actions.tryEmit(BudgetAction.CreateReceiptFromBudget(id, onSaved))
     }
 
+    fun shareBudgetPdf(id: Long) {
+        actions.tryEmit(BudgetAction.SharePdf(id))
+    }
+
     private suspend fun handleAction(action: BudgetAction) {
         when (action) {
             is BudgetAction.Create -> {
@@ -115,6 +123,11 @@ class BudgetViewModel @Inject constructor(
                 )
                 action.onSaved()
             }
+            is BudgetAction.SharePdf -> {
+                val user = userRepository.getUserSetup() ?: return
+                val budget = budgetRepository.getBudget(action.id) ?: return
+                pdfShareService.shareBudget(user, budget)
+            }
         }
     }
 
@@ -139,5 +152,6 @@ class BudgetViewModel @Inject constructor(
         data class UpdateStatus(val id: Long, val status: BudgetStatus) : BudgetAction
         data class Delete(val id: Long) : BudgetAction
         data class CreateReceiptFromBudget(val id: Long, val onSaved: () -> Unit) : BudgetAction
+        data class SharePdf(val id: Long) : BudgetAction
     }
 }

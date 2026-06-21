@@ -26,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,22 +34,18 @@ import com.example.florida.extensions.formatForBrl
 import com.example.florida.domain.model.Budget
 import com.example.florida.domain.model.BudgetStatus
 import com.example.florida.domain.model.Receipt
-import com.example.florida.domain.model.UserSetup
-import com.example.florida.document.pdf.BudgetPdfCreator
-import com.example.florida.document.pdf.sharePdf
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun BudgetDetailScreen(
     budget: Budget?,
     linkedReceipt: Receipt?,
-    currentUser: UserSetup?,
     onUpdateStatus: (BudgetStatus) -> Unit,
     onEdit: (Budget) -> Unit,
     onCreateReceipt: () -> Unit,
     onOpenReceipt: (Receipt) -> Unit,
     onDelete: () -> Unit,
+    onSharePdf: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (budget == null) {
@@ -62,7 +57,6 @@ fun BudgetDetailScreen(
         return
     }
 
-    val context = LocalContext.current
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Column(
@@ -189,22 +183,7 @@ fun BudgetDetailScreen(
         }
 
         Button(
-            onClick = {
-                currentUser?.let {
-                    val file = BudgetPdfCreator(
-                        user = it,
-                        client = budget.client,
-                        itens = budget.items,
-                        observasion = budget.notes.orEmpty(),
-                        date = budget.createdAt.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
-                        budgetNumber = budget.id.toString(),
-                        prazo = budget.entrega,
-                        validade = budget.validade,
-                        context = context
-                    )
-                    sharePdf(context, file, context.getString(R.string.share_budget))
-                }
-            },
+            onClick = onSharePdf,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.share_pdf))

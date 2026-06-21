@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,17 +55,20 @@ import com.example.florida.domain.validation.ValidationError
 import com.example.florida.extensions.normalizeCpfCnpjInput
 import com.example.florida.extensions.normalizePhoneInput
 import com.example.florida.domain.model.UserSetup
-import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
 import com.example.florida.ui.utils.PhoneVisualTransformation
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
 fun SettingsScreen(
     currentUser: UserSetup?,
-    onSaveUser: (UserSetup) -> Unit,
+    onSaveUser: (
+        user: UserSetup,
+        imageUri: Uri?,
+        onSaved: (String?) -> Unit,
+        onError: (Throwable) -> Unit,
+    ) -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -82,7 +84,6 @@ fun SettingsScreen(
     }
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
 
     var name by remember(issuer) { mutableStateOf(issuer.name) }
     var document by remember(issuer) { mutableStateOf(issuer.document.normalizeCpfCnpjInput()) }
@@ -296,39 +297,35 @@ fun SettingsScreen(
                 savedMessage = null
                 errorMessage = null
 
-                scope.launch {
-                    try {
-                        val pathToSave = selectedImageUri?.let { uri ->
-                            withContext(Dispatchers.IO) {
-                                ImageStorage.saveImage(context, uri)
-                            }
-                        } ?: imagePath
+                val updatedUser = issuer.copy(
+                    name = name,
+                    document = document,
+                    phone = phone,
+                    street = street,
+                    number = number,
+                    neighborhood = neighborhood,
+                    city = city,
+                    state = state,
+                    imagePath = imagePath
+                )
 
-                        val updatedUser = issuer.copy(
-                            name = name,
-                            document = document,
-                            phone = phone,
-                            street = street,
-                            number = number,
-                            neighborhood = neighborhood,
-                            city = city,
-                            state = state,
-                            imagePath = pathToSave
-                        )
-
-                        onSaveUser(updatedUser)
+                onSaveUser(
+                    updatedUser,
+                    selectedImageUri,
+                    { pathToSave ->
                         imagePath = pathToSave
                         selectedImageUri = null
                         savedMessage = context.getString(R.string.saved_data)
-                    } catch (exception: Exception) {
+                        isSaving = false
+                    },
+                    { exception ->
                         errorMessage = context.getString(
                             R.string.save_error,
                             exception.message ?: context.getString(R.string.unknown_error)
                         )
-                    } finally {
                         isSaving = false
                     }
-                }
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isSaving

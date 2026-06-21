@@ -1,20 +1,14 @@
 package com.example.florida.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.florida.R
-import com.example.florida.document.pdf.BudgetPdfCreator
-import com.example.florida.document.pdf.ReceiptPdfCreate
-import com.example.florida.document.pdf.sharePdf
 import com.example.florida.domain.model.ClientListItem
 import com.example.florida.domain.model.Budget
 import com.example.florida.domain.model.Client
@@ -23,15 +17,12 @@ import com.example.florida.ui.budget.BudgetViewModel
 import com.example.florida.ui.client.ClientViewModel
 import com.example.florida.ui.home.DashboardViewModel
 import com.example.florida.ui.receipt.ReceiptViewModel
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun AppNavigator(
     navController: NavHostController,
     onLogout: () -> Unit,
 ) {
-    val context = LocalContext.current
     val appViewModel: AppNavigatorViewModel = hiltViewModel()
     val dashboardViewModel: DashboardViewModel = hiltViewModel()
     val clientViewModel: ClientViewModel = hiltViewModel()
@@ -48,8 +39,6 @@ fun AppNavigator(
     var budgetToEdit by remember { mutableStateOf<Budget?>(null) }
     var receiptToEdit by remember { mutableStateOf<Receipt?>(null) }
     var selectedClientIdForNewDocument by remember { mutableStateOf<Long?>(null) }
-    var pendingBudgetPdfId by remember { mutableStateOf<Long?>(null) }
-    var pendingReceiptPdfId by remember { mutableStateOf<Long?>(null) }
 
     val dashboardSummary by dashboardViewModel.summary.collectAsState()
     val clients by clientViewModel.clients.collectAsState()
@@ -61,41 +50,6 @@ fun AppNavigator(
     val selectedReceipt by receiptViewModel.selectedReceipt.collectAsState()
     val currentUser by appViewModel.currentUser.collectAsState()
     val clientOptions = clients.map { it.toClient() }
-
-    LaunchedEffect(pendingBudgetPdfId, selectedBudget, currentUser) {
-        val budgetId = pendingBudgetPdfId ?: return@LaunchedEffect
-        val budget = selectedBudget?.takeIf { it.id == budgetId } ?: return@LaunchedEffect
-        val user = currentUser ?: return@LaunchedEffect
-        val file = BudgetPdfCreator(
-            user = user,
-            client = budget.client,
-            itens = budget.items,
-            observasion = budget.notes.orEmpty(),
-            date = budget.createdAt.atZone(ZoneId.systemDefault()).toOffsetDateTime(),
-            budgetNumber = budget.id.toString(),
-            prazo = budget.entrega,
-            validade = budget.validade,
-            context = context
-        )
-        sharePdf(context, file, context.getString(R.string.share_budget))
-        pendingBudgetPdfId = null
-    }
-
-    LaunchedEffect(pendingReceiptPdfId, selectedReceipt, currentUser) {
-        val receiptId = pendingReceiptPdfId ?: return@LaunchedEffect
-        val receipt = selectedReceipt?.takeIf { it.id == receiptId } ?: return@LaunchedEffect
-        val user = currentUser ?: return@LaunchedEffect
-        val file = ReceiptPdfCreate(
-            context = context,
-            user = user,
-            cliente = receipt.client,
-            itens = receipt.items,
-            budgetNumber = receipt.id.toInt(),
-            dateStr = receipt.date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        )
-        sharePdf(context, file, context.getString(R.string.share_receipt))
-        pendingReceiptPdfId = null
-    }
 
     AppScaffold(
         navController = navController,
@@ -136,8 +90,6 @@ fun AppNavigator(
             onClientToEditChange = { clientToEdit = it },
             onBudgetToEditChange = { budgetToEdit = it },
             onReceiptToEditChange = { receiptToEdit = it },
-            onPendingBudgetPdfIdChange = { pendingBudgetPdfId = it },
-            onPendingReceiptPdfIdChange = { pendingReceiptPdfId = it },
             onLogout = onLogout,
         )
     }

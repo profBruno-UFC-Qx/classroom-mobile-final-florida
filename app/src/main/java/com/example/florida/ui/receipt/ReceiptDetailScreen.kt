@@ -23,7 +23,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,19 +30,16 @@ import com.example.florida.R
 import com.example.florida.extensions.formatForBrl
 import com.example.florida.domain.model.Budget
 import com.example.florida.domain.model.Receipt
-import com.example.florida.domain.model.UserSetup
-import com.example.florida.document.pdf.ReceiptPdfCreate
-import com.example.florida.document.pdf.sharePdf
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun ReceiptDetailScreen(
     receipt: Receipt?,
     originBudget: Budget?,
-    currentUser: UserSetup?,
     onEdit: (Receipt) -> Unit,
     onOpenBudget: (Budget) -> Unit,
     onDelete: () -> Unit,
+    onSharePdf: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (receipt == null) {
@@ -55,7 +51,6 @@ fun ReceiptDetailScreen(
         return
     }
 
-    val context = LocalContext.current
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
     Column(
@@ -141,19 +136,7 @@ fun ReceiptDetailScreen(
         }
 
         Button(
-            onClick = {
-                currentUser?.let {
-                    val file = ReceiptPdfCreate(
-                        context = context,
-                        user = it,
-                        cliente = receipt.client,
-                        itens = receipt.items,
-                        budgetNumber = receipt.id.toInt(),
-                        dateStr = receipt.date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    )
-                    sharePdf(context, file, context.getString(R.string.share_receipt))
-                }
-            },
+            onClick = onSharePdf,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.share_pdf))

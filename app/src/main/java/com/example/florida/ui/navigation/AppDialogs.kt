@@ -29,30 +29,16 @@ fun AppDialogs(
         ClientFormDialog(
             client = clientToEdit,
             onDismiss = onDismissClientDialog,
-            onConfirm = { name, document, phone, address, imagePath ->
-                val editing = clientToEdit
-                if (editing == null) {
-                    clientViewModel.saveClient(
-                        Client(
-                            name = name,
-                            document = document,
-                            phone = phone,
-                            address = address,
-                            imagePath = imagePath
-                        )
-                    )
-                } else {
-                    clientViewModel.saveClient(
-                        editing.copy(
-                            name = name,
-                            document = document,
-                            phone = phone,
-                            address = address,
-                            imagePath = imagePath
-                        )
-                    )
-                }
-                onDismissClientDialog()
+            onConfirm = { name, document, phone, address, imageUri ->
+                clientViewModel.saveClientForm(
+                    editingClient = clientToEdit,
+                    name = name,
+                    document = document,
+                    phone = phone,
+                    address = address,
+                    imageUri = imageUri,
+                    onSaved = onDismissClientDialog
+                )
             }
         )
     }

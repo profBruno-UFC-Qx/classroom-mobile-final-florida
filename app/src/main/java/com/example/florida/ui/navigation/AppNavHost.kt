@@ -60,8 +60,6 @@ fun AppNavHost(
     onClientToEditChange: (Client?) -> Unit,
     onBudgetToEditChange: (Budget?) -> Unit,
     onReceiptToEditChange: (Receipt?) -> Unit,
-    onPendingBudgetPdfIdChange: (Long?) -> Unit,
-    onPendingReceiptPdfIdChange: (Long?) -> Unit,
     onLogout: () -> Unit,
 ) {
     NavHost(
@@ -126,8 +124,7 @@ fun AppNavHost(
                     navActions.navigateToReceiptDetail(receiptId)
                 },
                 onShareBudgetPdf = { budget ->
-                    budgetViewModel.selectBudget(budget.id)
-                    onPendingBudgetPdfIdChange(budget.id)
+                    budgetViewModel.shareBudgetPdf(budget.id)
                 }
             )
         }
@@ -151,7 +148,6 @@ fun AppNavHost(
             BudgetDetailScreen(
                 budget = budget,
                 linkedReceipt = linkedReceipt,
-                currentUser = currentUser,
                 onUpdateStatus = { status ->
                     budget?.let { budgetViewModel.updateStatus(it.id, status) }
                 },
@@ -171,6 +167,9 @@ fun AppNavHost(
                 onDelete = {
                     budget?.let { budgetViewModel.deleteBudget(it.id) }
                     navActions.navigateUp(navController)
+                },
+                onSharePdf = {
+                    budget?.let { budgetViewModel.shareBudgetPdf(it.id) }
                 }
             )
         }
@@ -256,8 +255,7 @@ fun AppNavHost(
                     navActions.navigateToReceiptDetail(receipt.id)
                 },
                 onShareReceiptPdf = { receipt ->
-                    receiptViewModel.selectReceipt(receipt.id)
-                    onPendingReceiptPdfIdChange(receipt.id)
+                    receiptViewModel.shareReceiptPdf(receipt.id)
                 }
             )
         }
@@ -279,7 +277,6 @@ fun AppNavHost(
             ReceiptDetailScreen(
                 receipt = receipt,
                 originBudget = originBudget,
-                currentUser = currentUser,
                 onEdit = { editingReceipt ->
                     onReceiptToEditChange(editingReceipt)
                 },
@@ -289,6 +286,9 @@ fun AppNavHost(
                 onDelete = {
                     receipt?.let { receiptViewModel.deleteReceipt(it.id) }
                     navActions.navigateUp(navController)
+                },
+                onSharePdf = {
+                    receipt?.let { receiptViewModel.shareReceiptPdf(it.id) }
                 }
             )
         }

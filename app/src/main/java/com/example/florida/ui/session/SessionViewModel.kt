@@ -1,8 +1,10 @@
 package com.example.florida.ui.session
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.UserSetup
+import com.example.florida.persistence.ImageStorageService
 import com.example.florida.persistence.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -18,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val imageStorageService: ImageStorageService,
 ) : ViewModel() {
     sealed class SessionState {
         data object Loading : SessionState()
@@ -51,6 +54,10 @@ class SessionViewModel @Inject constructor(
         actions.tryEmit(SessionAction.SaveUser(userSetup))
     }
 
+    fun saveUser(userSetup: UserSetup, imageUri: Uri?) {
+        actions.tryEmit(SessionAction.SaveUserWithImage(userSetup, imageUri))
+    }
+
     fun updateUser(userSetup: UserSetup) {
         actions.tryEmit(SessionAction.UpdateUser(userSetup))
     }
@@ -66,6 +73,10 @@ class SessionViewModel @Inject constructor(
     private suspend fun handleAction(action: SessionAction) {
         when (action) {
             is SessionAction.SaveUser -> userRepository.saveUser(action.userSetup)
+            is SessionAction.SaveUserWithImage -> {
+                val imagePath = action.imageUri?.let { imageStorageService.saveImage(it) }
+                userRepository.saveUser(action.userSetup.copy(imagePath = imagePath))
+            }
             is SessionAction.UpdateUser -> userRepository.updateUser(action.userSetup)
             SessionAction.Logout -> userRepository.deleteUser()
             SessionAction.Refresh -> userRepository.getUserSetup()
@@ -74,6 +85,7 @@ class SessionViewModel @Inject constructor(
 
     private sealed interface SessionAction {
         data class SaveUser(val userSetup: UserSetup) : SessionAction
+        data class SaveUserWithImage(val userSetup: UserSetup, val imageUri: Uri?) : SessionAction
         data class UpdateUser(val userSetup: UserSetup) : SessionAction
         data object Logout : SessionAction
         data object Refresh : SessionAction

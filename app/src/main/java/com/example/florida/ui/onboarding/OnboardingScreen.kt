@@ -35,7 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,16 +50,14 @@ import com.example.florida.domain.validation.ValidationError
 import com.example.florida.extensions.normalizeCpfCnpjInput
 import com.example.florida.extensions.normalizePhoneInput
 import com.example.florida.domain.model.UserSetup
-import com.example.florida.persistence.ImageStorage
 import com.example.florida.ui.utils.CpfCnpjVisualTransformation
 import com.example.florida.ui.utils.PhoneVisualTransformation
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
 fun OnboardingScreen(
-    onSaveUser: (UserSetup) -> Unit,
+    onSaveUser: (UserSetup, Uri?) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -75,7 +72,6 @@ fun OnboardingScreen(
     var city by remember { mutableStateOf("") }
     var state by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
@@ -85,7 +81,6 @@ fun OnboardingScreen(
     }
 
     val bitmapState = rememberBitmapFromUri(imageUri)
-    val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
     Column(
@@ -266,7 +261,7 @@ fun OnboardingScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = {  // ToDO refatorar para remover logica dA UI.
+            onClick = {
                 val validation = FormValidators.validateIssuer(
                     name = name,
                     document = document,
@@ -276,50 +271,28 @@ fun OnboardingScreen(
                     errorMessage = context.getValidationMessage(validation.errors.first())
                     return@Button
                 }
-                isLoading = true
-                scope.launch(Dispatchers.Default) {
-                    try {
-                        val imagePath = imageUri?.let { uri ->
-                            withContext(Dispatchers.IO) {
-                                ImageStorage.saveImage(context, uri)
-                            }
-                        }
-                        val userSetup = UserSetup(
-                            name = name,
-                            document = document,
-                            street = street,
-                            number = number,
-                            neighborhood = neighborhood,
-                            city = city,
-                            state = state,
-                            phone = phone,
-                            imagePath = imagePath
-                        )
-                        onSaveUser(userSetup)
-
-                    } catch (e: Exception) {
-                        errorMessage = context.getString(R.string.save_error, e.message ?: "")
-                    } finally {
-                        isLoading = false
-                    }
-                }
+                onSaveUser(
+                    UserSetup(
+                        name = name,
+                        document = document,
+                        street = street,
+                        number = number,
+                        neighborhood = neighborhood,
+                        city = city,
+                        state = state,
+                        phone = phone,
+                        imagePath = null
+                    ),
+                    imageUri
+                )
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ),
-            enabled = !isLoading
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(stringResource(id = R.string.continue_button))
-            }
+            Text(stringResource(id = R.string.continue_button))
         }
     }
 }

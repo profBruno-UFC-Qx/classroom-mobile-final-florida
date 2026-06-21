@@ -1,10 +1,12 @@
 package com.example.florida.ui.client
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.ClientDocumentSummary
 import com.example.florida.domain.model.ClientListItem
 import com.example.florida.domain.model.Client
+import com.example.florida.persistence.ImageStorageService
 import com.example.florida.persistence.repository.ClientRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
@@ -23,7 +25,8 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ClientViewModel @Inject constructor(
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientRepository,
+    private val imageStorageService: ImageStorageService,
 ) : ViewModel() {
     val clients: StateFlow<List<ClientListItem>> = clientRepository.observeClientListItems()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -59,6 +62,28 @@ class ClientViewModel @Inject constructor(
         actions.tryEmit(ClientAction.Save(client))
     }
 
+    fun saveClientForm(
+        editingClient: Client?,
+        name: String,
+        document: String,
+        phone: String,
+        address: String,
+        imageUri: Uri?,
+        onSaved: () -> Unit,
+    ) {
+        actions.tryEmit(
+            ClientAction.SaveForm(
+                editingClient = editingClient,
+                name = name,
+                document = document,
+                phone = phone,
+                address = address,
+                imageUri = imageUri,
+                onSaved = onSaved
+            )
+        )
+    }
+
     fun deleteClient(client: Client) {
         actions.tryEmit(ClientAction.Delete(client))
     }
@@ -67,11 +92,39 @@ class ClientViewModel @Inject constructor(
         when (action) {
             is ClientAction.Save -> clientRepository.saveClient(action.client)
             is ClientAction.Delete -> clientRepository.deleteClient(action.client)
+            is ClientAction.SaveForm -> {
+                val imagePath = action.imageUri?.let { imageStorageService.saveImage(it) }
+                    ?: action.editingClient?.imagePath
+                val client = action.editingClient?.copy(
+                    name = action.name,
+                    document = action.document,
+                    phone = action.phone,
+                    address = action.address,
+                    imagePath = imagePath
+                ) ?: Client(
+                    name = action.name,
+                    document = action.document,
+                    phone = action.phone,
+                    address = action.address,
+                    imagePath = imagePath
+                )
+                clientRepository.saveClient(client)
+                action.onSaved()
+            }
         }
     }
 
     private sealed interface ClientAction {
         data class Save(val client: Client) : ClientAction
         data class Delete(val client: Client) : ClientAction
+        data class SaveForm(
+            val editingClient: Client?,
+            val name: String,
+            val document: String,
+            val phone: String,
+            val address: String,
+            val imageUri: Uri?,
+            val onSaved: () -> Unit,
+        ) : ClientAction
     }
 }

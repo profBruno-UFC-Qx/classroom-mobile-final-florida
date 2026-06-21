@@ -1,8 +1,9 @@
 package com.example.florida.ui.app
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.example.florida.domain.model.UserSetup
@@ -28,7 +29,7 @@ fun FloridaApp() {
 @Composable
 private fun FloridaAppContent(
     state: SessionViewModel.SessionState,
-    onSaveUser: (UserSetup) -> Unit,
+    onSaveUser: (UserSetup, Uri?) -> Unit,
     onLogout: () -> Unit,
     onRetry: () -> Unit,
 ) {

@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.ReceiptListItem
 import com.example.florida.domain.model.Item
 import com.example.florida.domain.model.Receipt
+import com.example.florida.document.pdf.PdfShareService
 import com.example.florida.persistence.repository.ReceiptRepository
+import com.example.florida.persistence.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,7 +25,9 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ReceiptViewModel @Inject constructor(
-    private val receiptRepository: ReceiptRepository
+    private val receiptRepository: ReceiptRepository,
+    private val userRepository: UserRepository,
+    private val pdfShareService: PdfShareService,
 ) : ViewModel() {
     val receipts: StateFlow<List<ReceiptListItem>> = receiptRepository.observeReceiptListItems()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -71,6 +75,10 @@ class ReceiptViewModel @Inject constructor(
         actions.tryEmit(ReceiptAction.Delete(id))
     }
 
+    fun shareReceiptPdf(id: Long) {
+        actions.tryEmit(ReceiptAction.SharePdf(id))
+    }
+
     private suspend fun handleAction(action: ReceiptAction) {
         when (action) {
             is ReceiptAction.Create -> {
@@ -82,6 +90,11 @@ class ReceiptViewModel @Inject constructor(
                 action.onSaved()
             }
             is ReceiptAction.Delete -> receiptRepository.deleteReceipt(action.id)
+            is ReceiptAction.SharePdf -> {
+                val user = userRepository.getUserSetup() ?: return
+                val receipt = receiptRepository.getReceipt(action.id) ?: return
+                pdfShareService.shareReceipt(user, receipt)
+            }
         }
     }
 
@@ -99,5 +112,6 @@ class ReceiptViewModel @Inject constructor(
             val onSaved: () -> Unit,
         ) : ReceiptAction
         data class Delete(val id: Long) : ReceiptAction
+        data class SharePdf(val id: Long) : ReceiptAction
     }
 }
