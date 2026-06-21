@@ -317,6 +317,3 @@ A UI deve falar com ViewModels, não diretamente com DAOs ou repositórios. O pr
 - Ainda faltam testes unitários, testes de DAO e testes de UI.
 - Falta edição completa de orçamentos e recibos.
 - Falta vínculo formal entre recibo e orçamento de origem.
-
-
-continuar a conversa `codex resume 019de04c-116a-7912-8389-ba4b44634fe6`
