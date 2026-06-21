@@ -2,9 +2,8 @@ package com.example.florida.ui.app
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.florida.domain.model.UserSetup
 import com.example.florida.ui.home.ErrorScreen
@@ -15,10 +14,7 @@ import com.example.florida.ui.session.SessionViewModel
 
 @Composable
 fun FloridaApp() {
-    val context = LocalContext.current
-    val sessionViewModel: SessionViewModel = viewModel(
-        factory = SessionViewModel.factory(context)
-    )
+    val sessionViewModel: SessionViewModel = hiltViewModel()
     val state by sessionViewModel.sessionState.collectAsStateWithLifecycle()
 
     FloridaAppContent(

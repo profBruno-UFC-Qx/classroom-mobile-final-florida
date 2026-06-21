@@ -1,16 +1,14 @@
 package com.example.florida.ui.budget
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.BudgetListItem
 import com.example.florida.domain.model.Budget
 import com.example.florida.domain.model.BudgetStatus
 import com.example.florida.domain.model.Item
-import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.repository.BudgetRepository
 import com.example.florida.persistence.repository.ReceiptRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -22,9 +20,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class BudgetViewModel(
+@HiltViewModel
+class BudgetViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
     private val receiptRepository: ReceiptRepository,
 ) : ViewModel() {
@@ -139,20 +139,5 @@ class BudgetViewModel(
         data class UpdateStatus(val id: Long, val status: BudgetStatus) : BudgetAction
         data class Delete(val id: Long) : BudgetAction
         data class CreateReceiptFromBudget(val id: Long, val onSaved: () -> Unit) : BudgetAction
-    }
-
-    companion object {
-        fun factory(context: Context): ViewModelProvider.Factory {
-            val appContext = context.applicationContext
-            return object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return BudgetViewModel(
-                        budgetRepository = DatabaseProvider.getBudgetRepository(appContext),
-                        receiptRepository = DatabaseProvider.getReceiptRepository(appContext)
-                    ) as T
-                }
-            }
-        }
     }
 }

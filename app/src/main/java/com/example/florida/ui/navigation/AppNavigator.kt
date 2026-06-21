@@ -8,7 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.florida.R
@@ -32,21 +32,11 @@ fun AppNavigator(
     onLogout: () -> Unit,
 ) {
     val context = LocalContext.current
-    val appViewModel: AppNavigatorViewModel = viewModel(
-        factory = AppNavigatorViewModel.factory(context)
-    )
-    val dashboardViewModel: DashboardViewModel = viewModel(
-        factory = DashboardViewModel.factory(context)
-    )
-    val clientViewModel: ClientViewModel = viewModel(
-        factory = ClientViewModel.factory(context)
-    )
-    val budgetViewModel: BudgetViewModel = viewModel(
-        factory = BudgetViewModel.factory(context)
-    )
-    val receiptViewModel: ReceiptViewModel = viewModel(
-        factory = ReceiptViewModel.factory(context)
-    )
+    val appViewModel: AppNavigatorViewModel = hiltViewModel()
+    val dashboardViewModel: DashboardViewModel = hiltViewModel()
+    val clientViewModel: ClientViewModel = hiltViewModel()
+    val budgetViewModel: BudgetViewModel = hiltViewModel()
+    val receiptViewModel: ReceiptViewModel = hiltViewModel()
     val navActions = NavigationActions(navController)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

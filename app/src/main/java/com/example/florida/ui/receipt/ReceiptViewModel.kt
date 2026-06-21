@@ -1,14 +1,12 @@
 package com.example.florida.ui.receipt
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.florida.domain.model.ReceiptListItem
 import com.example.florida.domain.model.Item
 import com.example.florida.domain.model.Receipt
-import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.persistence.repository.ReceiptRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,9 +18,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ReceiptViewModel(
+@HiltViewModel
+class ReceiptViewModel @Inject constructor(
     private val receiptRepository: ReceiptRepository
 ) : ViewModel() {
     val receipts: StateFlow<List<ReceiptListItem>> = receiptRepository.observeReceiptListItems()
@@ -99,17 +99,5 @@ class ReceiptViewModel(
             val onSaved: () -> Unit,
         ) : ReceiptAction
         data class Delete(val id: Long) : ReceiptAction
-    }
-
-    companion object {
-        fun factory(context: Context): ViewModelProvider.Factory {
-            val appContext = context.applicationContext
-            return object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return ReceiptViewModel(DatabaseProvider.getReceiptRepository(appContext)) as T
-                }
-            }
-        }
     }
 }

@@ -1,12 +1,10 @@
 package com.example.florida.ui.session
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.florida.persistence.DatabaseProvider
 import com.example.florida.domain.model.UserSetup
 import com.example.florida.persistence.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,8 +14,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
-class SessionViewModel(
+@HiltViewModel
+class SessionViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
     sealed class SessionState {
@@ -77,19 +77,5 @@ class SessionViewModel(
         data class UpdateUser(val userSetup: UserSetup) : SessionAction
         data object Logout : SessionAction
         data object Refresh : SessionAction
-    }
-
-    companion object {
-        fun factory(context: Context): ViewModelProvider.Factory {
-            val appContext = context.applicationContext
-            return object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SessionViewModel(
-                        userRepository = DatabaseProvider.getUserRepository(appContext)
-                    ) as T
-                }
-            }
-        }
     }
 }
