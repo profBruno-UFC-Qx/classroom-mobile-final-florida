@@ -1,7 +1,9 @@
 from collections.abc import Generator
+from os import getenv
+
 from sqlmodel import Session, SQLModel, create_engine
 
-DATABASE_URL = "sqlite:///florida.db"
+DATABASE_URL = getenv("FLORIDA_DATABASE_URL", "sqlite:///florida.db")
 
 engine = create_engine(
     DATABASE_URL,
