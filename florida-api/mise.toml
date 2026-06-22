@@ -4,3 +4,11 @@ uv = "latest"
 
 [env]
 _.python.venv = { path = ".venv", create = true } # cria automaticamente o .venv
+
+[tasks.setup]
+description = "Prepara o ambiente da API"
+run = "uv sync"
+
+[tasks.dev]
+description = "Roda a API em modo de desenvolvimento"
+run = "uv run fastapi dev main.py"
