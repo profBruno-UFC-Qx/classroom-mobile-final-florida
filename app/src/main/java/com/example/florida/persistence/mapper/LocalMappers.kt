@@ -25,14 +25,16 @@ import com.example.florida.persistence.projection.ReceiptListProjection
 import com.example.florida.persistence.relations.BudgetWithItems
 import com.example.florida.persistence.relations.ReceiptWithItems
 
-private const val DEFAULT_USER_NAME = "Francisco"
-private const val DEFAULT_USER_DOCUMENT = "06364254307"
-private const val DEFAULT_USER_STREET = "Rua dos Bobos"
-private const val DEFAULT_USER_NUMBER = "0"
-private const val DEFAULT_USER_NEIGHBORHOOD = "Bairro dos Bobos"
-private const val DEFAULT_USER_CITY = "Cidade dos Bobos"
-private const val DEFAULT_USER_STATE = "SP"
-private const val DEFAULT_USER_PHONE = "11999999999"
+object UserSetupPlaceholders {
+    const val NAME = "Francisco"
+    const val DOCUMENT = "06364254307"
+    const val STREET = "Rua dos Bobos"
+    const val NUMBER = "0"
+    const val NEIGHBORHOOD = "Bairro dos Bobos"
+    const val CITY = "Cidade dos Bobos"
+    const val STATE = "SP"
+    const val PHONE = "11999999999"
+}
 
 fun ClientEntity.toDomain(): Client {
     return Client(
@@ -236,13 +238,13 @@ fun UserSetup.toEntity(): UserEntity {
 }
 
 fun UserEntity.isPlaceholderSetup(): Boolean {
-    return name == DEFAULT_USER_NAME &&
-        document == DEFAULT_USER_DOCUMENT &&
-        street == DEFAULT_USER_STREET &&
-        number == DEFAULT_USER_NUMBER &&
-        neighborhood == DEFAULT_USER_NEIGHBORHOOD &&
-        city == DEFAULT_USER_CITY &&
-        state == DEFAULT_USER_STATE &&
-        phone == DEFAULT_USER_PHONE &&
+    return name == UserSetupPlaceholders.NAME &&
+        document == UserSetupPlaceholders.DOCUMENT &&
+        street == UserSetupPlaceholders.STREET &&
+        number == UserSetupPlaceholders.NUMBER &&
+        neighborhood == UserSetupPlaceholders.NEIGHBORHOOD &&
+        city == UserSetupPlaceholders.CITY &&
+        state == UserSetupPlaceholders.STATE &&
+        phone == UserSetupPlaceholders.PHONE &&
         imagePath == null
 }

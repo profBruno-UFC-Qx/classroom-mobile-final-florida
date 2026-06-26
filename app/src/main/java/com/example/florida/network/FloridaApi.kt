@@ -16,8 +16,8 @@ import com.example.florida.network.dto.ReceiptDto
 import com.example.florida.network.dto.ReceiptListItemDto
 import com.example.florida.network.dto.ReceiptUpdateDto
 import com.example.florida.network.dto.SyncPayloadDto
+import com.example.florida.network.dto.UserSetupCreateDto
 import com.example.florida.network.dto.UserSetupDto
-import com.example.florida.network.dto.UserSetupUpdateDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -25,6 +25,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 
 class FloridaApi(
@@ -123,8 +124,9 @@ class FloridaApi(
 
     suspend fun getUserSetup(): UserSetupDto = httpClient.get("/user-setup/").body()
 
-    suspend fun updateUserSetup(payload: UserSetupUpdateDto): UserSetupDto {
-        return httpClient.patch("/user-setup/") {
+    suspend fun saveUserSetup(payload: UserSetupCreateDto): UserSetupDto {
+        // gambiarra de user setup, não pensei muito bem ao fazer api então esqueci de colocar o post e o get cria um padrão quando é feito, por isso eu crio um padrão e depois dou um put
+        return httpClient.put("/user-setup/") {
             setBody(payload)
         }.body()
     }

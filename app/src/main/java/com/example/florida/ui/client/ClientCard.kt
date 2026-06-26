@@ -336,7 +336,13 @@ private fun DeleteConfirmDialog(
 @Composable
 fun ClientCardPreview() {
     ClientCard(
-        Client(name = "Francisco", address = "Rua dos Bobos", document = "06364254307", phone = "123456789", imagePath = null),
+        Client(
+            name = "Cliente Exemplo",
+            address = "Rua das Flores, 100",
+            document = "123.456.789-00",
+            phone = "(11) 91234-5678",
+            imagePath = null
+        ),
         onClicked = {},
         onClickBudget = {},
         onClickReceipt = {},

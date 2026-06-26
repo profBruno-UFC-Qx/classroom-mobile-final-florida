@@ -71,8 +71,8 @@ class FloridaRemoteRepository(
 
     suspend fun getUserSetup(): UserSetup = api.getUserSetup().toDomain()
 
-    suspend fun updateUserSetup(userSetup: UserSetup): UserSetup {
-        return api.updateUserSetup(userSetup.toUpdateDto()).toDomain()
+    suspend fun saveUserSetup(userSetup: UserSetup): UserSetup {
+        return api.saveUserSetup(userSetup.toCreateDto()).toDomain()
     }
 
     suspend fun getDashboardSummary(): DashboardSummary = api.getDashboardSummary().toDomain()

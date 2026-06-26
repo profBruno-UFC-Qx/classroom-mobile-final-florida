@@ -21,6 +21,7 @@ import com.example.florida.persistence.entity.ClientEntity
 import com.example.florida.persistence.entity.ReceiptItemEntity
 import com.example.florida.persistence.entity.ReceiptEntity
 import com.example.florida.persistence.entity.UserEntity
+import com.example.florida.persistence.mapper.UserSetupPlaceholders
 import com.example.florida.persistence.mapper.isPlaceholderSetup
 import com.example.florida.persistence.mapper.toDomain
 import com.example.florida.persistence.relations.BudgetWithItems
@@ -75,31 +76,38 @@ class SyncRepository(
 
     suspend fun pushFullStateToRemote() = withContext(Dispatchers.IO) {
         syncMutex.withLock {
-            syncUserSetup()
+            val failures = mutableListOf<String>()
+
+            syncUserSetup(failures)
 
             val remotePayload = remoteRepository.getSyncPayload()
 
-            pushAllClientsToRemote()
-            pushAllBudgetsToRemote()
-            pushAllReceiptsToRemote()
+            pushAllClientsToRemote(failures)
+            pushAllBudgetsToRemote(failures)
+            pushAllReceiptsToRemote(failures)
 
-            deleteRemoteOnlyReceipts(remotePayload.receipts.mapTo(mutableSetOf()) { it.id })
-            deleteRemoteOnlyBudgets(remotePayload.budgets.mapTo(mutableSetOf()) { it.id })
-            deleteRemoteOnlyClients(remotePayload.clients)
+            deleteRemoteOnlyReceipts(remotePayload.receipts.mapTo(mutableSetOf()) { it.id }, failures)
+            deleteRemoteOnlyBudgets(remotePayload.budgets.mapTo(mutableSetOf()) { it.id }, failures)
+            deleteRemoteOnlyClients(remotePayload.clients, failures)
+
+            if (failures.isNotEmpty()) {
+                throw IllegalStateException(failures.joinToString(separator = "\n"))
+            }
         }
     }
 
-    private suspend fun syncUserSetup() {
+    private suspend fun syncUserSetup(failures: MutableList<String>? = null) {
         val localUser = userDao.getUserSetup() ?: return
         if (localUser.isPlaceholderSetup()) return
         runCatching {
-            remoteRepository.updateUserSetup(localUser.toDomain())
+            remoteRepository.saveUserSetup(localUser.toDomain())
         }.onFailure { throwable ->
             Log.e(TAG, "Failed to sync user setup", throwable)
+            failures?.add("user setup: ${throwable.message ?: "erro ao sincronizar"}")
         }
     }
 
-    private suspend fun pushAllClientsToRemote() {
+    private suspend fun pushAllClientsToRemote(failures: MutableList<String>? = null) {
         clientDao.getAllClients().forEach { client ->
             runCatching {
                 when {
@@ -119,11 +127,12 @@ class SyncRepository(
                 }
             }.onFailure { throwable ->
                 Log.e(TAG, "Failed to push full client localId=${client.id}", throwable)
+                failures?.add("cliente ${client.name}: ${throwable.message ?: "erro ao enviar"}")
             }
         }
     }
 
-    private suspend fun pushAllBudgetsToRemote() {
+    private suspend fun pushAllBudgetsToRemote(failures: MutableList<String>? = null) {
         budgetDao.getAllBudgets().forEach { budgetWithItems ->
             val budget = budgetWithItems.budget
             runCatching {
@@ -155,11 +164,12 @@ class SyncRepository(
                 }
             }.onFailure { throwable ->
                 Log.e(TAG, "Failed to push full budget localId=${budget.id}", throwable)
+                failures?.add("orcamento ${budget.id}: ${throwable.message ?: "erro ao enviar"}")
             }
         }
     }
 
-    private suspend fun pushAllReceiptsToRemote() {
+    private suspend fun pushAllReceiptsToRemote(failures: MutableList<String>? = null) {
         receiptDao.getAllReceipts().forEach { receiptWithItems ->
             val receipt = receiptWithItems.receipt
             runCatching {
@@ -193,11 +203,15 @@ class SyncRepository(
                 }
             }.onFailure { throwable ->
                 Log.e(TAG, "Failed to push full receipt localId=${receipt.id}", throwable)
+                failures?.add("recibo ${receipt.id}: ${throwable.message ?: "erro ao enviar"}")
             }
         }
     }
 
-    private suspend fun deleteRemoteOnlyReceipts(remoteReceiptIds: Set<Long>) {
+    private suspend fun deleteRemoteOnlyReceipts(
+        remoteReceiptIds: Set<Long>,
+        failures: MutableList<String>? = null,
+    ) {
         val localRemoteIds = receiptDao.getAllReceipts()
             .mapNotNull { receiptWithItems -> receiptWithItems.receipt.remoteId }
             .toSet()
@@ -208,11 +222,15 @@ class SyncRepository(
                 runCatching { remoteRepository.deleteReceipt(remoteId) }
                     .onFailure { throwable ->
                         Log.e(TAG, "Failed to delete remote-only receipt remoteId=$remoteId", throwable)
+                        failures?.add("recibo remoto $remoteId: ${throwable.message ?: "erro ao excluir"}")
                     }
             }
     }
 
-    private suspend fun deleteRemoteOnlyBudgets(remoteBudgetIds: Set<Long>) {
+    private suspend fun deleteRemoteOnlyBudgets(
+        remoteBudgetIds: Set<Long>,
+        failures: MutableList<String>? = null,
+    ) {
         val localRemoteIds = budgetDao.getAllBudgets()
             .mapNotNull { budgetWithItems -> budgetWithItems.budget.remoteId }
             .toSet()
@@ -223,11 +241,15 @@ class SyncRepository(
                 runCatching { remoteRepository.deleteBudget(remoteId) }
                     .onFailure { throwable ->
                         Log.e(TAG, "Failed to delete remote-only budget remoteId=$remoteId", throwable)
+                        failures?.add("orcamento remoto $remoteId: ${throwable.message ?: "erro ao excluir"}")
                     }
             }
     }
 
-    private suspend fun deleteRemoteOnlyClients(remoteClients: List<ClientDto>) {
+    private suspend fun deleteRemoteOnlyClients(
+        remoteClients: List<ClientDto>,
+        failures: MutableList<String>? = null,
+    ) {
         val localRemoteIds = clientDao.getAllClients()
             .mapNotNull { client -> client.remoteId }
             .toSet()
@@ -238,6 +260,7 @@ class SyncRepository(
                 runCatching { remoteRepository.deleteClient(remoteClient.id) }
                     .onFailure { throwable ->
                         Log.e(TAG, "Failed to delete remote-only client remoteId=${remoteClient.id}", throwable)
+                        failures?.add("cliente remoto ${remoteClient.id}: ${throwable.message ?: "erro ao excluir"}")
                     }
             }
     }
@@ -534,14 +557,14 @@ class SyncRepository(
 }
 
 private fun UserSetupDto.isPlaceholderSetup(): Boolean {
-    return name == "Francisco" &&
-        document == "06364254307" &&
-        street == "Rua dos Bobos" &&
-        number == "0" &&
-        neighborhood == "Bairro dos Bobos" &&
-        city == "Cidade dos Bobos" &&
-        state == "SP" &&
-        phone == "11999999999" &&
+    return name == UserSetupPlaceholders.NAME &&
+        document == UserSetupPlaceholders.DOCUMENT &&
+        street == UserSetupPlaceholders.STREET &&
+        number == UserSetupPlaceholders.NUMBER &&
+        neighborhood == UserSetupPlaceholders.NEIGHBORHOOD &&
+        city == UserSetupPlaceholders.CITY &&
+        state == UserSetupPlaceholders.STATE &&
+        phone == UserSetupPlaceholders.PHONE &&
         imagePath == null
 }
 

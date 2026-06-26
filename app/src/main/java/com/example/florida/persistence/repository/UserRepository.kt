@@ -26,7 +26,9 @@ class UserRepository(
 
     // Flow para saber se usuário existe
     fun hasUserFlow(): Flow<Boolean> {
-        return userDao.hasUser()
+        return userDao.getUserSetupFlow().map { userEntity ->
+            userEntity?.isPlaceholderSetup() == false
+        }
     }
 
     // Obter usuário de forma síncrona
