@@ -51,6 +51,8 @@ fun AppNavHost(
     selectedBudget: Budget?,
     selectedReceipt: Receipt?,
     currentUser: UserSetup?,
+    isSyncingBackup: Boolean,
+    backupSyncMessage: String?,
     showCreateBudgetDialog: Boolean,
     showCreateReceiptDialog: Boolean,
     selectedClientIdForNewDocument: Long?,
@@ -60,6 +62,7 @@ fun AppNavHost(
     onClientToEditChange: (Client?) -> Unit,
     onBudgetToEditChange: (Budget?) -> Unit,
     onReceiptToEditChange: (Receipt?) -> Unit,
+    onSyncBackupNow: () -> Unit,
     onLogout: () -> Unit,
 ) {
     NavHost(
@@ -177,6 +180,9 @@ fun AppNavHost(
             SettingsScreen(
                 currentUser = currentUser,
                 onSaveUser = appViewModel::updateUser,
+                onSyncBackupNow = onSyncBackupNow,
+                isSyncingBackup = isSyncingBackup,
+                backupSyncMessage = backupSyncMessage,
                 onLogout = onLogout
             )
         }

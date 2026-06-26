@@ -21,6 +21,7 @@ import java.time.LocalDateTime
 data class BudgetEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val remoteId: Long? = null,
     val clientId: Long?,
     val notes: String?,
     val validade: String?,
@@ -29,4 +30,6 @@ data class BudgetEntity(
     val updateAt: LocalDateTime,
     val total: Long,
     val status: String = "DRAFT",
+    val syncPending: Boolean = false,
+    val pendingDelete: Boolean = false,
 )

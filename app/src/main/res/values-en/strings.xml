@@ -7,6 +7,7 @@
     <string name="image_selected">Image selected</string>
     <string name="no_image">No image</string>
     <string name="continue_button">Continue</string>
+    <string name="restore_backup">Try restoring backup</string>
     <string name="logout">Log out</string>
     <string name="account">Account</string>
     <string name="logout_help">Removes issuer data from this device and returns to the initial setup.</string>
@@ -137,6 +138,9 @@
     <string name="address_data_help">Address shown in documents to identify your company or professional profile.</string>
     <string name="save_changes">Save changes</string>
     <string name="saved_data">Data saved.</string>
+    <string name="cloud_backup">Cloud backup</string>
+    <string name="cloud_backup_help">Uploads the full local state to the remote repository again and removes from the backup anything already deleted on this device.</string>
+    <string name="sync_backup_now">Sync backup now</string>
     <string name="detail_client">Client detail</string>
     <string name="detail_budget">Budget detail</string>
     <string name="detail_receipt">Receipt detail</string>

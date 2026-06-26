@@ -7,6 +7,7 @@
     <string name="image_selected">Imagem selecionada</string>
     <string name="no_image">Nenhuma imagem</string>
     <string name="continue_button">Continuar</string>
+    <string name="restore_backup">Tentar restaurar backup</string>
     <string name="logout">Sair</string>
     <string name="account">Conta</string>
     <string name="logout_help">Remove os dados do emissor deste aparelho e volta para o cadastro inicial.</string>
@@ -137,6 +138,9 @@
     <string name="address_data_help">Endereço exibido nos documentos para identificar sua empresa ou profissional.</string>
     <string name="save_changes">Salvar alterações</string>
     <string name="saved_data">Dados salvos.</string>
+    <string name="cloud_backup">Backup na nuvem</string>
+    <string name="cloud_backup_help">Envia novamente todo o estado local para o repositório remoto e remove do backup o que já foi apagado no aparelho.</string>
+    <string name="sync_backup_now">Sincronizar backup agora</string>
     <string name="detail_client">Detalhe do cliente</string>
     <string name="detail_budget">Detalhe do orçamento</string>
     <string name="detail_receipt">Detalhe do recibo</string>

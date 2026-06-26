@@ -49,6 +49,8 @@ fun AppNavigator(
     val selectedBudget by budgetViewModel.selectedBudget.collectAsState()
     val selectedReceipt by receiptViewModel.selectedReceipt.collectAsState()
     val currentUser by appViewModel.currentUser.collectAsState()
+    val isSyncingBackup by appViewModel.isSyncingBackup.collectAsState()
+    val backupSyncMessage by appViewModel.backupSyncMessage.collectAsState()
     val clientOptions = clients.map { it.toClient() }
 
     AppScaffold(
@@ -81,6 +83,8 @@ fun AppNavigator(
             selectedBudget = selectedBudget,
             selectedReceipt = selectedReceipt,
             currentUser = currentUser,
+            isSyncingBackup = isSyncingBackup,
+            backupSyncMessage = backupSyncMessage,
             showCreateBudgetDialog = showCreateBudgetDialog,
             showCreateReceiptDialog = showCreateReceiptDialog,
             selectedClientIdForNewDocument = selectedClientIdForNewDocument,
@@ -90,6 +94,7 @@ fun AppNavigator(
             onClientToEditChange = { clientToEdit = it },
             onBudgetToEditChange = { budgetToEdit = it },
             onReceiptToEditChange = { receiptToEdit = it },
+            onSyncBackupNow = appViewModel::syncBackupNow,
             onLogout = onLogout,
         )
     }

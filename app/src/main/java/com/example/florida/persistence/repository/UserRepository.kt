@@ -1,19 +1,23 @@
 package com.example.florida.persistence.repository
 
 import com.example.florida.domain.model.UserSetup
-import com.example.florida.persistence.entity.UserEntity
 import com.example.florida.persistence.dao.UserDao
+import com.example.florida.persistence.mapper.toDomain
+import com.example.florida.persistence.mapper.toEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-class UserRepository(private val userDao: UserDao) {
+class UserRepository(
+    private val userDao: UserDao,
+    private val syncRepository: SyncRepository,
+) {
 
     // Flow para observar mudanças em tempo real
     fun getUserSetupFlow(): Flow<UserSetup?> {
         return userDao.getUserSetupFlow().map { userEntity ->
-            userEntity?.toUserSetup()
+            userEntity?.toDomain()
         }
     }
 
@@ -25,7 +29,7 @@ class UserRepository(private val userDao: UserDao) {
     // Obter usuário de forma síncrona
     suspend fun getUserSetup(): UserSetup? {
         return withContext(Dispatchers.IO) {
-            userDao.getUserSetup()?.toUserSetup()
+            userDao.getUserSetup()?.toDomain()
         }
     }
 
@@ -39,16 +43,28 @@ class UserRepository(private val userDao: UserDao) {
     // Salvar novo usuário
     suspend fun saveUser(userSetup: UserSetup) {
         return withContext(Dispatchers.IO) {
-            val userEntity = userSetup.toUserEntity()
-            userDao.insertUser(userEntity)
+            userDao.insertUser(userSetup.toEntity())
+            runCatching { syncRepository.syncPendingChanges() }
         }
     }
 
     // Atualizar usuário existente
     suspend fun updateUser(userSetup: UserSetup) {
         return withContext(Dispatchers.IO) {
-            val userEntity = userSetup.toUserEntity()
-            userDao.updateUser(userEntity)
+            userDao.insertUser(userSetup.toEntity())
+            runCatching { syncRepository.syncPendingChanges() }
+        }
+    }
+
+    suspend fun restoreFromRemoteBackup() {
+        return withContext(Dispatchers.IO) {
+            syncRepository.restoreFromRemoteBackup()
+        }
+    }
+
+    suspend fun syncBackupNow() {
+        return withContext(Dispatchers.IO) {
+            syncRepository.pushFullStateToRemote()
         }
     }
 
@@ -57,36 +73,5 @@ class UserRepository(private val userDao: UserDao) {
         return withContext(Dispatchers.IO) {
             userDao.deleteUser()
         }
-    }
-
-    // ==================== EXTENSION FUNCTIONS ====================
-    private fun UserEntity.toUserSetup(): UserSetup {
-        return UserSetup(
-            name = this.name,
-            document = this.document,
-            street = this.street,
-            number = this.number,
-            neighborhood = this.neighborhood,
-            city = this.city,
-            state = this.state,
-            phone = this.phone,
-            imagePath = this.imagePath
-        )
-    }
-
-    private fun UserSetup.toUserEntity(): UserEntity {
-        return UserEntity(
-            id = 1,
-            name = this.name,
-            document = this.document,
-            street = this.street,
-            number = this.number,
-            neighborhood = this.neighborhood,
-            city = this.city,
-            state = this.state,
-            phone = this.phone,
-            imagePath = this.imagePath,
-            updatedAt = System.currentTimeMillis()
-        )
     }
 }

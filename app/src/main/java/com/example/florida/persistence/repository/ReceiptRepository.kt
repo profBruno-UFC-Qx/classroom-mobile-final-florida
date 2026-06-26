@@ -1,40 +1,42 @@
 package com.example.florida.persistence.repository
 
 import com.example.florida.domain.model.ReceiptListItem
-import com.example.florida.domain.model.Client
 import com.example.florida.domain.model.Item
 import com.example.florida.domain.model.Receipt
-import com.example.florida.persistence.entity.ClientEntity
-import com.example.florida.persistence.entity.ReceiptEntity
-import com.example.florida.persistence.entity.ReceiptItemEntity
+import com.example.florida.network.FloridaRemoteRepository
 import com.example.florida.persistence.dao.ReceiptDao
-import com.example.florida.persistence.projection.ReceiptListProjection
-import com.example.florida.persistence.relations.ReceiptWithItems
+import com.example.florida.persistence.mapper.toDomain
+import com.example.florida.persistence.mapper.toEntity
+import com.example.florida.persistence.mapper.toReceiptItemEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
-class ReceiptRepository(private val receiptDao: ReceiptDao) {
+class ReceiptRepository(
+    private val receiptDao: ReceiptDao,
+    private val remoteRepository: FloridaRemoteRepository,
+    private val syncRepository: SyncRepository,
+) {
     fun observeReceipts(): Flow<List<Receipt>> {
         return receiptDao.observeReceipts().map { receipts ->
-            receipts.map { it.toReceipt() }
+            receipts.map { it.toDomain() }
         }
     }
 
     fun observeReceiptListItems(): Flow<List<ReceiptListItem>> {
         return receiptDao.observeReceiptListItems().map { receipts ->
-            receipts.map { it.toReceiptListItem() }
+            receipts.map { it.toDomain() }
         }
     }
 
     fun observeReceipt(id: Long): Flow<Receipt?> {
-        return receiptDao.observeReceipt(id).map { it?.toReceipt() }
+        return receiptDao.observeReceipt(id).map { it?.toDomain() }
     }
 
     suspend fun getReceipt(id: Long): Receipt? = withContext(Dispatchers.IO) {
-        receiptDao.getReceipt(id)?.toReceipt()
+        receiptDao.getReceipt(id)?.toDomain()
     }
 
     suspend fun saveReceipt(
@@ -43,28 +45,30 @@ class ReceiptRepository(private val receiptDao: ReceiptDao) {
         budgetId: Long? = null,
     ): Long = withContext(Dispatchers.IO) {
         val now = LocalDateTime.now()
-        val total = items.sumOf { it.total }
-        receiptDao.insertReceiptWithItems(
-            receipt = ReceiptEntity(
-                clientId = clientId,
-                budgetId = budgetId,
-                total = total,
-                date = now,
-                createdAt = now
-            ),
-            items = items.map {
-                ReceiptItemEntity(
-                    receiptId = 0,
-                    description = it.description,
-                    qty = it.qty,
-                    price = it.price
-                )
-            }
+        val draft = Receipt(
+            clientId = clientId,
+            budgetId = budgetId,
+            total = items.sumOf { it.total },
+            date = now,
+            createdAt = now,
+            items = items
         )
+        val localId = receiptDao.insertReceiptWithItems(
+            receipt = draft.toEntity().copy(syncPending = true),
+            items = draft.items.map { it.toReceiptItemEntity(0) }
+        )
+        runCatching { syncRepository.syncPendingChanges() }
+        localId
     }
 
     suspend fun deleteReceipt(id: Long) = withContext(Dispatchers.IO) {
-        receiptDao.deleteReceipt(id)
+        val existingReceipt = receiptDao.getReceipt(id)?.receipt ?: return@withContext
+        if (existingReceipt.remoteId == null) {
+            receiptDao.deleteReceipt(id)
+        } else {
+            receiptDao.insertReceipt(existingReceipt.copy(syncPending = true, pendingDelete = true))
+            runCatching { syncRepository.syncPendingChanges() }
+        }
     }
 
     suspend fun updateReceipt(
@@ -72,65 +76,19 @@ class ReceiptRepository(private val receiptDao: ReceiptDao) {
         clientId: Long?,
         items: List<Item>,
     ) = withContext(Dispatchers.IO) {
-        val total = items.sumOf { it.total }
+        val existingReceipt = receiptDao.getReceipt(receipt.id)?.receipt ?: return@withContext
         receiptDao.updateReceiptWithItems(
-            receipt = ReceiptEntity(
-                id = receipt.id,
+            receipt = receipt.copy(
                 clientId = clientId,
-                budgetId = receipt.budgetId,
-                total = total,
-                date = receipt.date,
-                createdAt = receipt.createdAt
+                total = items.sumOf { it.total },
+                items = items
+            ).toEntity().copy(
+                remoteId = existingReceipt.remoteId,
+                syncPending = true,
+                pendingDelete = false,
             ),
-            items = items.map {
-                ReceiptItemEntity(
-                    receiptId = receipt.id,
-                    description = it.description,
-                    qty = it.qty,
-                    price = it.price
-                )
-            }
+            items = items.map { it.toReceiptItemEntity(receipt.id) }
         )
-    }
-
-    private fun ReceiptWithItems.toReceipt(): Receipt {
-        return Receipt(
-            id = receipt.id,
-            client = client?.toClient(),
-            clientId = receipt.clientId,
-            budgetId = receipt.budgetId,
-            total = receipt.total,
-            date = receipt.date,
-            createdAt = receipt.createdAt,
-            items = items.map { it.toItem() }
-        )
-    }
-
-    private fun ReceiptListProjection.toReceiptListItem(): ReceiptListItem {
-        return ReceiptListItem(
-            id = id,
-            clientId = clientId,
-            clientName = clientName,
-            budgetId = budgetId,
-            total = total,
-            date = date,
-            itemCount = itemCount
-        )
-    }
-
-    private fun ReceiptItemEntity.toItem(): Item {
-        return Item(id = id, description = description, qty = qty, price = price)
-    }
-
-    private fun ClientEntity.toClient(): Client {
-        return Client(
-            id = id,
-            name = name,
-            address = address,
-            document = document,
-            phone = phone,
-            imagePath = imagePath,
-            deleted = deleted
-        )
+        runCatching { syncRepository.syncPendingChanges() }
     }
 }

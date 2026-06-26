@@ -58,6 +58,9 @@ import kotlinx.coroutines.withContext
 @Composable
 fun OnboardingScreen(
     onSaveUser: (UserSetup, Uri?) -> Unit,
+    onRestoreBackup: () -> Unit,
+    isRestoringBackup: Boolean,
+    restoreErrorMessage: String?,
     modifier: Modifier = Modifier
 ) {
 
@@ -293,6 +296,44 @@ fun OnboardingScreen(
             ),
         ) {
             Text(stringResource(id = R.string.continue_button))
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onRestoreBackup,
+            enabled = !isRestoringBackup,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            ),
+        ) {
+            if (isRestoringBackup) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            } else {
+                Text(stringResource(id = R.string.restore_backup))
+            }
+        }
+
+        restoreErrorMessage?.let {
+            Spacer(modifier = Modifier.height(12.dp))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.errorContainer,
+                shape = MaterialTheme.shapes.small
+            ) {
+                Text(
+                    text = it,
+                    modifier = Modifier.padding(12.dp),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
         }
     }
 }

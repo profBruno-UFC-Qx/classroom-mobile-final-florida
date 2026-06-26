@@ -17,10 +17,15 @@ import com.example.florida.ui.session.SessionViewModel
 fun FloridaApp() {
     val sessionViewModel: SessionViewModel = hiltViewModel()
     val state by sessionViewModel.sessionState.collectAsStateWithLifecycle()
+    val isRestoringBackup by sessionViewModel.isRestoringBackup.collectAsStateWithLifecycle()
+    val restoreErrorMessage by sessionViewModel.restoreErrorMessage.collectAsStateWithLifecycle()
 
     FloridaAppContent(
         state = state,
         onSaveUser = sessionViewModel::saveUser,
+        onRestoreBackup = sessionViewModel::restoreBackup,
+        isRestoringBackup = isRestoringBackup,
+        restoreErrorMessage = restoreErrorMessage,
         onLogout = sessionViewModel::logout,
         onRetry = sessionViewModel::retry
     )
@@ -30,6 +35,9 @@ fun FloridaApp() {
 private fun FloridaAppContent(
     state: SessionViewModel.SessionState,
     onSaveUser: (UserSetup, Uri?) -> Unit,
+    onRestoreBackup: () -> Unit,
+    isRestoringBackup: Boolean,
+    restoreErrorMessage: String?,
     onLogout: () -> Unit,
     onRetry: () -> Unit,
 ) {
@@ -37,7 +45,10 @@ private fun FloridaAppContent(
         SessionViewModel.SessionState.Loading -> SplashScreen()
         SessionViewModel.SessionState.NoUser -> {
             OnboardingScreen(
-                onSaveUser = onSaveUser
+                onSaveUser = onSaveUser,
+                onRestoreBackup = onRestoreBackup,
+                isRestoringBackup = isRestoringBackup,
+                restoreErrorMessage = restoreErrorMessage
             )
         }
         is SessionViewModel.SessionState.Logged -> AppWithNavigation(onLogout = onLogout)

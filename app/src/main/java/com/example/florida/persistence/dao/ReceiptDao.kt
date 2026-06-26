@@ -15,7 +15,7 @@ import java.time.LocalDateTime
 @Dao
 interface ReceiptDao {
     @Transaction
-    @Query("SELECT * FROM receipts ORDER BY date DESC")
+    @Query("SELECT * FROM receipts WHERE pendingDelete = 0 ORDER BY date DESC")
     fun observeReceipts(): Flow<List<ReceiptWithItems>>
 
     @Query("""
@@ -30,18 +30,19 @@ interface ReceiptDao {
         FROM receipts
         LEFT JOIN clients ON clients.id = receipts.clientId
         LEFT JOIN receipt_items ON receipt_items.receiptId = receipts.id
+        WHERE receipts.pendingDelete = 0
         GROUP BY receipts.id
         ORDER BY receipts.date DESC
     """)
     fun observeReceiptListItems(): Flow<List<ReceiptListProjection>>
 
-    @Query("SELECT COUNT(*) FROM receipts")
+    @Query("SELECT COUNT(*) FROM receipts WHERE pendingDelete = 0")
     fun observeReceiptCount(): Flow<Int>
 
-    @Query("SELECT COALESCE(SUM(total), 0) FROM receipts")
+    @Query("SELECT COALESCE(SUM(total), 0) FROM receipts WHERE pendingDelete = 0")
     fun observeTotalReceived(): Flow<Long>
 
-    @Query("SELECT COALESCE(SUM(total), 0) FROM receipts WHERE date >= :start AND date < :end")
+    @Query("SELECT COALESCE(SUM(total), 0) FROM receipts WHERE pendingDelete = 0 AND date >= :start AND date < :end")
     fun observeReceivedBetween(start: LocalDateTime, end: LocalDateTime): Flow<Long>
 
     @Transaction
@@ -55,6 +56,18 @@ interface ReceiptDao {
     @Transaction
     @Query("SELECT * FROM receipts WHERE budgetId = :budgetId LIMIT 1")
     suspend fun getReceiptByBudgetId(budgetId: Long): ReceiptWithItems?
+
+    @Transaction
+    @Query("SELECT * FROM receipts WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getReceiptByRemoteId(remoteId: Long): ReceiptWithItems?
+
+    @Transaction
+    @Query("SELECT * FROM receipts")
+    suspend fun getAllReceipts(): List<ReceiptWithItems>
+
+    @Transaction
+    @Query("SELECT * FROM receipts WHERE syncPending = 1 ORDER BY createdAt ASC")
+    suspend fun getPendingSyncReceipts(): List<ReceiptWithItems>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReceipt(receipt: ReceiptEntity): Long

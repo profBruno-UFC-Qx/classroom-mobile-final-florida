@@ -24,7 +24,7 @@ import com.example.florida.persistence.dao.UserDao
         ReceiptEntity::class,
         ReceiptItemEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

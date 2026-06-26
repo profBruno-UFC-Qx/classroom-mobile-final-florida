@@ -51,7 +51,11 @@ class ClientViewModel @Inject constructor(
     )
 
     init {
-        actions.onEach(::handleAction).launchIn(viewModelScope)
+        actions
+            .onEach { action ->
+                runCatching { handleAction(action) }
+            }
+            .launchIn(viewModelScope)
     }
 
     fun selectClient(id: Long) {

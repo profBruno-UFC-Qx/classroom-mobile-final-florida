@@ -69,6 +69,9 @@ fun SettingsScreen(
         onSaved: (String?) -> Unit,
         onError: (Throwable) -> Unit,
     ) -> Unit,
+    onSyncBackupNow: () -> Unit,
+    isSyncingBackup: Boolean,
+    backupSyncMessage: String?,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -344,6 +347,49 @@ fun SettingsScreen(
             savedMessage = savedMessage,
             errorMessage = errorMessage
         )
+
+        SettingsSection(
+            title = stringResource(R.string.cloud_backup),
+            description = stringResource(R.string.cloud_backup_help)
+        ) {
+            OutlinedButton(
+                onClick = onSyncBackupNow,
+                enabled = !isSyncingBackup,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isSyncingBackup) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(stringResource(R.string.sync_backup_now))
+                }
+            }
+
+            backupSyncMessage?.let {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (it.startsWith("Erro")) {
+                        MaterialTheme.colorScheme.errorContainer
+                    } else {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    },
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = it,
+                        modifier = Modifier.padding(12.dp),
+                        color = if (it.startsWith("Erro")) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        },
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+        }
 
         SettingsSection(
             title = stringResource(R.string.account),

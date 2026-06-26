@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BudgetDao {
     @Transaction
-    @Query("SELECT * FROM budgets ORDER BY createdAt DESC")
+    @Query("SELECT * FROM budgets WHERE pendingDelete = 0 ORDER BY createdAt DESC")
     fun observeBudgets(): Flow<List<BudgetWithItems>>
 
     @Query("""
@@ -31,15 +31,16 @@ interface BudgetDao {
         LEFT JOIN clients ON clients.id = budgets.clientId
         LEFT JOIN budget_items ON budget_items.budgetId = budgets.id
         LEFT JOIN receipts ON receipts.budgetId = budgets.id
+        WHERE budgets.pendingDelete = 0
         GROUP BY budgets.id
         ORDER BY budgets.createdAt DESC
     """)
     fun observeBudgetListItems(): Flow<List<BudgetListProjection>>
 
-    @Query("SELECT COUNT(*) FROM budgets")
+    @Query("SELECT COUNT(*) FROM budgets WHERE pendingDelete = 0")
     fun observeBudgetCount(): Flow<Int>
 
-    @Query("SELECT COALESCE(SUM(total), 0) FROM budgets")
+    @Query("SELECT COALESCE(SUM(total), 0) FROM budgets WHERE pendingDelete = 0")
     fun observeTotalBudgeted(): Flow<Long>
 
     @Transaction
@@ -49,6 +50,18 @@ interface BudgetDao {
     @Transaction
     @Query("SELECT * FROM budgets WHERE id = :id LIMIT 1")
     suspend fun getBudget(id: Long): BudgetWithItems?
+
+    @Transaction
+    @Query("SELECT * FROM budgets WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getBudgetByRemoteId(remoteId: Long): BudgetWithItems?
+
+    @Transaction
+    @Query("SELECT * FROM budgets")
+    suspend fun getAllBudgets(): List<BudgetWithItems>
+
+    @Transaction
+    @Query("SELECT * FROM budgets WHERE syncPending = 1 ORDER BY createdAt ASC")
+    suspend fun getPendingSyncBudgets(): List<BudgetWithItems>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBudget(budget: BudgetEntity): Long

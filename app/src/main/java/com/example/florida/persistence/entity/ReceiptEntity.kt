@@ -27,9 +27,12 @@ import java.time.LocalDateTime
 data class ReceiptEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val remoteId: Long? = null,
     val clientId: Long?,
     val budgetId: Long? = null,
     val total: Long,
     val date: LocalDateTime,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val syncPending: Boolean = false,
+    val pendingDelete: Boolean = false,
 )

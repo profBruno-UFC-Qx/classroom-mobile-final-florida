@@ -46,7 +46,11 @@ class ReceiptViewModel @Inject constructor(
     )
 
     init {
-        actions.onEach(::handleAction).launchIn(viewModelScope)
+        actions
+            .onEach { action ->
+                runCatching { handleAction(action) }
+            }
+            .launchIn(viewModelScope)
     }
 
     fun selectReceipt(id: Long) {

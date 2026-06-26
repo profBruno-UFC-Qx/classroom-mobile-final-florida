@@ -3,39 +3,41 @@ package com.example.florida.persistence.repository
 import com.example.florida.domain.model.BudgetListItem
 import com.example.florida.domain.model.Budget
 import com.example.florida.domain.model.BudgetStatus
-import com.example.florida.domain.model.Client
 import com.example.florida.domain.model.Item
-import com.example.florida.persistence.entity.BudgetEntity
-import com.example.florida.persistence.entity.BudgetItemEntity
-import com.example.florida.persistence.entity.ClientEntity
+import com.example.florida.network.FloridaRemoteRepository
 import com.example.florida.persistence.dao.BudgetDao
-import com.example.florida.persistence.projection.BudgetListProjection
-import com.example.florida.persistence.relations.BudgetWithItems
+import com.example.florida.persistence.mapper.toBudgetItemEntity
+import com.example.florida.persistence.mapper.toDomain
+import com.example.florida.persistence.mapper.toEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
-class BudgetRepository(private val budgetDao: BudgetDao) {
+class BudgetRepository(
+    private val budgetDao: BudgetDao,
+    private val remoteRepository: FloridaRemoteRepository,
+    private val syncRepository: SyncRepository,
+) {
     fun observeBudgets(): Flow<List<Budget>> {
         return budgetDao.observeBudgets().map { budgets ->
-            budgets.map { it.toBudget() }
+            budgets.map { it.toDomain() }
         }
     }
 
     fun observeBudgetListItems(): Flow<List<BudgetListItem>> {
         return budgetDao.observeBudgetListItems().map { budgets ->
-            budgets.map { it.toBudgetListItem() }
+            budgets.map { it.toDomain() }
         }
     }
 
     fun observeBudget(id: Long): Flow<Budget?> {
-        return budgetDao.observeBudget(id).map { it?.toBudget() }
+        return budgetDao.observeBudget(id).map { it?.toDomain() }
     }
 
     suspend fun getBudget(id: Long): Budget? = withContext(Dispatchers.IO) {
-        budgetDao.getBudget(id)?.toBudget()
+        budgetDao.getBudget(id)?.toDomain()
     }
 
     suspend fun saveBudget(
@@ -46,31 +48,33 @@ class BudgetRepository(private val budgetDao: BudgetDao) {
         items: List<Item>,
     ): Long = withContext(Dispatchers.IO) {
         val now = LocalDateTime.now()
-        val total = items.sumOf { it.total }
-        budgetDao.insertBudgetWithItems(
-            budget = BudgetEntity(
-                clientId = clientId,
-                notes = notes,
-                validade = validade,
-                entrega = entrega,
-                createdAt = now,
-                updateAt = now,
-                total = total,
-                status = BudgetStatus.DRAFT.name
-            ),
-            items = items.map {
-                BudgetItemEntity(
-                    budgetId = 0,
-                    description = it.description,
-                    qty = it.qty,
-                    price = it.price
-                )
-            }
+        val draft = Budget(
+            clientId = clientId,
+            notes = notes,
+            validade = validade,
+            entrega = entrega,
+            createdAt = now,
+            updateAt = now,
+            total = items.sumOf { it.total },
+            status = BudgetStatus.DRAFT,
+            items = items
         )
+        val localId = budgetDao.insertBudgetWithItems(
+            budget = draft.toEntity().copy(syncPending = true),
+            items = draft.items.map { it.toBudgetItemEntity(0) }
+        )
+        runCatching { syncRepository.syncPendingChanges() }
+        localId
     }
 
     suspend fun deleteBudget(id: Long) = withContext(Dispatchers.IO) {
-        budgetDao.deleteBudget(id)
+        val existingBudget = budgetDao.getBudget(id)?.budget ?: return@withContext
+        if (existingBudget.remoteId == null) {
+            budgetDao.deleteBudget(id)
+        } else {
+            budgetDao.insertBudget(existingBudget.copy(syncPending = true, pendingDelete = true))
+            runCatching { syncRepository.syncPendingChanges() }
+        }
     }
 
     suspend fun updateBudget(
@@ -81,76 +85,37 @@ class BudgetRepository(private val budgetDao: BudgetDao) {
         entrega: String?,
         items: List<Item>,
     ) = withContext(Dispatchers.IO) {
-        val total = items.sumOf { it.total }
+        val existingBudget = budgetDao.getBudget(budget.id)?.budget ?: return@withContext
         budgetDao.updateBudgetWithItems(
-            budget = BudgetEntity(
-                id = budget.id,
+            budget = budget.copy(
                 clientId = clientId,
                 notes = notes,
                 validade = validade,
                 entrega = entrega,
-                createdAt = budget.createdAt,
                 updateAt = LocalDateTime.now(),
-                total = total,
-                status = budget.status.name
+                total = items.sumOf { it.total },
+                items = items
+            ).toEntity().copy(
+                remoteId = existingBudget.remoteId,
+                syncPending = true,
+                pendingDelete = false,
             ),
-            items = items.map {
-                BudgetItemEntity(
-                    budgetId = budget.id,
-                    description = it.description,
-                    qty = it.qty,
-                    price = it.price
-                )
-            }
+            items = items.map { it.toBudgetItemEntity(budget.id) }
         )
+        runCatching { syncRepository.syncPendingChanges() }
     }
 
     suspend fun updateStatus(id: Long, status: BudgetStatus) = withContext(Dispatchers.IO) {
-        budgetDao.updateStatus(id, status.name)
-    }
-
-    private fun BudgetWithItems.toBudget(): Budget {
-        return Budget(
-            id = budget.id,
-            client = client?.toClient(),
-            clientId = budget.clientId,
-            notes = budget.notes,
-            validade = budget.validade,
-            entrega = budget.entrega,
-            createdAt = budget.createdAt,
-            updateAt = budget.updateAt,
-            total = budget.total,
-            status = BudgetStatus.from(budget.status),
-            items = items.map { it.toItem() }
+        val currentBudget = budgetDao.getBudget(id)?.toDomain() ?: return@withContext
+        val currentEntity = budgetDao.getBudget(id)?.budget ?: return@withContext
+        budgetDao.updateBudgetWithItems(
+            budget = currentBudget.copy(status = status).toEntity().copy(
+                remoteId = currentEntity.remoteId,
+                syncPending = true,
+                pendingDelete = false,
+            ),
+            items = currentBudget.items.map { it.toBudgetItemEntity(currentBudget.id) }
         )
-    }
-
-    private fun BudgetListProjection.toBudgetListItem(): BudgetListItem {
-        return BudgetListItem(
-            id = id,
-            clientId = clientId,
-            clientName = clientName,
-            createdAt = createdAt,
-            total = total,
-            status = BudgetStatus.from(status),
-            itemCount = itemCount,
-            linkedReceiptId = linkedReceiptId
-        )
-    }
-
-    private fun BudgetItemEntity.toItem(): Item {
-        return Item(id = id, description = description, qty = qty, price = price)
-    }
-
-    private fun ClientEntity.toClient(): Client {
-        return Client(
-            id = id,
-            name = name,
-            address = address,
-            document = document,
-            phone = phone,
-            imagePath = imagePath,
-            deleted = deleted
-        )
+        runCatching { syncRepository.syncPendingChanges() }
     }
 }
