@@ -15,12 +15,12 @@
     <string name="person_icon">Icone da tela cliente</string>
     <string name="budget_icon">Icone da tela orçamento</string>
     <string name="receipt_icon">Icone da tela recibo</string>
-    <string name="settings_icon">Icone da tela configurações</string>
+    <string name="settings_icon">Icone da tela opções</string>
     <string name="budget">Orçamento</string>
     <string name="client">Cliente</string>
     <string name="receipt">Recibo</string>
     <string name="dashboard">Dashboard</string>
-    <string name="settings">Configurações</string>
+    <string name="settings">Opções</string>
     <string name="welcome">Bem-vindo!</string>
     <string name="back">Voltar</string>
     <string name="sucessfull_setup">"Seu perfil foi configurado com sucesso."</string>
