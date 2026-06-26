@@ -2,6 +2,7 @@ package com.example.florida.persistence.repository
 
 import com.example.florida.domain.model.UserSetup
 import com.example.florida.persistence.dao.UserDao
+import com.example.florida.persistence.mapper.isPlaceholderSetup
 import com.example.florida.persistence.mapper.toDomain
 import com.example.florida.persistence.mapper.toEntity
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,9 @@ class UserRepository(
     // Flow para observar mudanças em tempo real
     fun getUserSetupFlow(): Flow<UserSetup?> {
         return userDao.getUserSetupFlow().map { userEntity ->
-            userEntity?.toDomain()
+            userEntity
+                ?.takeUnless { it.isPlaceholderSetup() }
+                ?.toDomain()
         }
     }
 
@@ -29,14 +32,16 @@ class UserRepository(
     // Obter usuário de forma síncrona
     suspend fun getUserSetup(): UserSetup? {
         return withContext(Dispatchers.IO) {
-            userDao.getUserSetup()?.toDomain()
+            userDao.getUserSetup()
+                ?.takeUnless { it.isPlaceholderSetup() }
+                ?.toDomain()
         }
     }
 
     // Verificar se existe usuário
     suspend fun hasUser(): Boolean {
         return withContext(Dispatchers.IO) {
-            userDao.hasUserSuspend()
+            userDao.getUserSetup()?.isPlaceholderSetup() == false
         }
     }
 

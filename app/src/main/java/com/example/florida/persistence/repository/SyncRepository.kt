@@ -21,6 +21,7 @@ import com.example.florida.persistence.entity.ClientEntity
 import com.example.florida.persistence.entity.ReceiptItemEntity
 import com.example.florida.persistence.entity.ReceiptEntity
 import com.example.florida.persistence.entity.UserEntity
+import com.example.florida.persistence.mapper.isPlaceholderSetup
 import com.example.florida.persistence.mapper.toDomain
 import com.example.florida.persistence.relations.BudgetWithItems
 import com.example.florida.persistence.relations.ReceiptWithItems
@@ -90,6 +91,7 @@ class SyncRepository(
 
     private suspend fun syncUserSetup() {
         val localUser = userDao.getUserSetup() ?: return
+        if (localUser.isPlaceholderSetup()) return
         runCatching {
             remoteRepository.updateUserSetup(localUser.toDomain())
         }.onFailure { throwable ->
@@ -362,6 +364,7 @@ class SyncRepository(
 
     private suspend fun mergeUserSetup(remoteUserSetup: UserSetupDto?) {
         if (remoteUserSetup == null) return
+        if (remoteUserSetup.isPlaceholderSetup()) return
         val localUser = userDao.getUserSetup()
         if (localUser != null) return
 
@@ -528,6 +531,18 @@ class SyncRepository(
             }
         }
     }
+}
+
+private fun UserSetupDto.isPlaceholderSetup(): Boolean {
+    return name == "Francisco" &&
+        document == "06364254307" &&
+        street == "Rua dos Bobos" &&
+        number == "0" &&
+        neighborhood == "Bairro dos Bobos" &&
+        city == "Cidade dos Bobos" &&
+        state == "SP" &&
+        phone == "11999999999" &&
+        imagePath == null
 }
 
 private fun ClientEntity.toRemoteCreate(): Client {
