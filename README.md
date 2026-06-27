@@ -3,7 +3,7 @@
 > Aplicativo Android para digitalização e gerenciamento de orçamentos e recibos, com geração de PDF e armazenamento local.
 
 ## :bulb: Objetivo Geral
-Desenvolver um aplicativo mobile para a plataforma Android, utilizando **Kotlin**, que permita o cadastro de clientes e o gerenciamento completo de orçamentos e recibos, com exportação de documentos em formato **PDF** e armazenamento local dos dados no dispositivo do usuário — funcionando totalmente offline.
+Desenvolver um aplicativo mobile para a plataforma Android, utilizando **Kotlin**, que permita o cadastro de clientes e o gerenciamento completo de orçamentos e recibos, com exportação de documentos em formato **PDF**, armazenamento local e sincronização opcional de backup pela internet.
 
 ## :eyes: Público-Alvo
 A aplicação é voltada para profissionais e empreendedores que precisam emitir orçamentos e recibos de forma rápida e organizada, sem depender de papéis ou planilhas:
@@ -57,20 +57,59 @@ O projeto utiliza uma stack Android moderna, com foco em funcionamento offline, 
 | **FileProvider**       | Compartilhamento seguro dos PDFs com outros apps                                        |
 | **Android Resources**  | Centralização de textos e suporte a internacionalização                                 |
 
+## :file_folder: Organização dos Diretórios
+
+```text
+.
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/example/florida/
+│   │   │   │   ├── di/           # Injeção de dependências com Hilt
+│   │   │   │   ├── document/     # Criação e compartilhamento de PDFs
+│   │   │   │   ├── domain/       # Modelos e validações da aplicação
+│   │   │   │   ├── extensions/   # Funções auxiliares de formatação
+│   │   │   │   ├── network/      # API, DTOs e mapeamento dos dados remotos
+│   │   │   │   ├── persistence/  # Banco Room, DAOs, entidades e repositórios
+│   │   │   │   └── ui/           # Telas, componentes, navegação e ViewModels
+│   │   │   ├── res/               # Textos, cores, temas, ícones e configurações
+│   │   │   └── AndroidManifest.xml
+│   │   ├── test/                   # Testes unitários
+│   │   └── androidTest/            # Testes instrumentados do Android
+│   └── build.gradle.kts            # Configuração e dependências do módulo Android
+├── gradle/                          # Catálogo de versões e Gradle Wrapper
+├── build.gradle.kts                 # Configuração geral do projeto
+└── settings.gradle.kts              # Módulos e repositórios do Gradle
+```
+
+Dentro de `ui`, cada funcionalidade possui sua própria pasta:
+
+| Diretório       | Responsabilidade                                      |
+|-----------------|-------------------------------------------------------|
+| `ui/home`       | Tela inicial, dashboard, splash e estados de erro     |
+| `ui/client`     | Cadastro, listagem, edição e detalhes de clientes     |
+| `ui/budget`     | Cadastro, listagem, edição e detalhes de orçamentos   |
+| `ui/receipt`    | Cadastro, listagem, edição e detalhes de recibos      |
+| `ui/settings`   | Configurações e dados do emissor                      |
+| `ui/onboarding` | Configuração inicial do usuário                       |
+| `ui/navigation` | Rotas, barras, diálogos e navegação entre telas       |
+| `ui/theme`      | Cores, tipografia e temas claro/escuro                |
+| `ui/utils`      | Máscaras e utilitários usados pela interface          |
+
 ## :building_construction: Arquitetura Atual
 
-A arquitetura atual está em transição para uma separação mais limpa entre UI, estado e dados. O app já possui persistência local, repositórios e um ViewModel central para evitar acesso direto ao banco nas telas principais.
+O aplicativo separa interface, estado e acesso a dados. As telas não acessam o banco diretamente: elas enviam ações aos ViewModels, que utilizam os repositórios.
 
 Fluxo geral:
 
 ```text
 Compose UI
    ↓ eventos do usuário
-AppNavigatorViewModel / SessionManager
+ViewModels
    ↓ chamadas assíncronas
 Repositories
-   ↓
-Room DAOs
+   ↓                 ↓
+Room DAOs       API remota
    ↓
 SQLite local
 ```
@@ -113,30 +152,29 @@ Pastas principais:
 | `ui/budget`        | Listagem e criação de orçamentos                                    |
 | `ui/receipt`       | Listagem e criação de recibos                                       |
 | `ui/settings`      | Configuração dos dados do emissor                                   |
-| `ui/AppNavigation` | Rotas, bottom navigation, scaffold e ViewModel central de navegação |
+| `ui/navigation`    | Rotas, bottom navigation, scaffold e navegação entre telas          |
 | `ui/utils`         | Utilitários de UI/PDF, máscaras e compartilhamento                  |
 | `ui/theme`         | Tema Material 3, cores e tipografia                                 |
 
 ### Camada de Estado
 
-Hoje existem dois pontos principais de estado:
+O estado das telas é organizado em ViewModels:
 
-| Componente              | Responsabilidade                                                                  |
-|-------------------------|-----------------------------------------------------------------------------------|
-| `AppNavigatorViewModel` | Observa clientes, orçamentos e recibos; cria, edita, exclui e atualiza documentos |
-| `SessionManager`        | Mantém o estado do usuário configurado no app                                     |
-
-Observação importante:
-
-- `AppNavigatorViewModel` já melhora a separação entre UI e dados.
-- `SessionManager` ainda é um singleton global e deve futuramente ser substituído por um `SessionViewModel` ou `SettingsViewModel`.
+| Componente              | Responsabilidade                                             |
+|-------------------------|--------------------------------------------------------------|
+| `AppNavigatorViewModel` | Estado geral, dados do emissor e sincronização do backup     |
+| `SessionViewModel`      | Sessão, onboarding e restauração dos dados                   |
+| `DashboardViewModel`    | Indicadores exibidos na tela inicial                         |
+| `ClientViewModel`       | Estado e operações de clientes                               |
+| `BudgetViewModel`       | Estado e operações de orçamentos                             |
+| `ReceiptViewModel`      | Estado e operações de recibos                                |
 
 ### Camada de Domínio / Modelos
 
 Local:
 
 ```text
-app/src/main/java/com/example/florida/model
+app/src/main/java/com/example/florida/domain/model
 ```
 
 Modelos principais:
@@ -171,14 +209,14 @@ Pastas principais:
 
 | Pasta/Arquivo         | Responsabilidade                                  |
 |-----------------------|---------------------------------------------------|
-| `AppDatabase.kt`      | Configuração principal do Room                    |
-| `DatabaseProvider.kt` | Criação singleton do banco e repositórios         |
-| `Entity`              | Entidades Room persistidas                        |
-| `dao`                 | Consultas e comandos SQL via Room                 |
-| `relations`           | Relações Room, como orçamento com itens e cliente |
-| `reposity`            | Repositórios usados pela camada de estado         |
-| `migration`           | Migrations versionadas do banco                   |
-| `ImageStorage.kt`     | Persistência local de imagens selecionadas        |
+| `AppDatabase.kt`         | Configuração principal do Room                    |
+| `ImageStorageService.kt` | Persistência local de imagens selecionadas        |
+| `entity`                 | Entidades Room persistidas                        |
+| `dao`                    | Consultas e comandos SQL via Room                 |
+| `relations`              | Relações Room, como orçamento com itens e cliente |
+| `repository`             | Repositórios usados pelos ViewModels              |
+| `mapper`                 | Conversão entre entidades e modelos de domínio    |
+| `migration`              | Migrations versionadas do banco                   |
 
 ### Banco de Dados Local
 
@@ -219,9 +257,9 @@ Regras atuais:
 Arquivos principais:
 
 ```text
-ui/utils/BudgetPdfCreator.kt
-ui/utils/ReceiptPdfCreate.kt
-ui/utils/PdfShare.kt
+document/pdf/BudgetPdfCreator.kt
+document/pdf/ReceiptPdfCreate.kt
+document/pdf/PdfShare.kt
 ```
 
 Responsabilidades:
@@ -249,9 +287,9 @@ Android abre seletor de apps
 Arquivos principais:
 
 ```text
-ui/AppNavigation/Route.kt
-ui/AppNavigation/NavigationAction.kt
-ui/AppNavigation/AppNavigation.kt
+ui/navigation/Route.kt
+ui/navigation/NavigationAction.kt
+ui/navigation/AppNavHost.kt
 ```
 
 Rotas atuais:
@@ -281,8 +319,12 @@ Rotas atuais:
 - Bloqueio de recibo duplicado para o mesmo orçamento.
 - Criação e listagem de recibos.
 - Detalhe de recibo.
+- Edição de orçamentos e recibos.
 - Geração e compartilhamento de PDF.
+- Seleção de imagens da galeria.
+- Backup e restauração por API remota.
 - Dashboard com métricas iniciais.
+- Testes unitários de modelos e validações.
 - Textos visíveis centralizados em `strings.xml`.
 - Tradução em inglês disponível em `values-en/strings.xml`.
 
@@ -290,7 +332,7 @@ Rotas atuais:
 
 ### Offline-first
 
-O aplicativo foi desenhado para funcionar sem internet. Todos os dados principais ficam no banco local do dispositivo.
+Todos os dados principais ficam no banco local do dispositivo, permitindo o uso sem internet. Quando há conexão, o aplicativo pode sincronizar um backup pela API remota.
 
 ### Room com migrations
 
@@ -306,14 +348,4 @@ O compartilhamento de PDFs usa `FileProvider`, que é a forma segura de expor ar
 
 ### ViewModel como fronteira da UI
 
-A UI deve falar com ViewModels, não diretamente com DAOs ou repositórios. O projeto já iniciou essa separação com `AppNavigatorViewModel`.
-
-## :warning: Dívidas Técnicas Conhecidas
-
-- `SessionManager` ainda deve ser substituído por ViewModel.
-- O pacote `reposity` possui erro de digitação e deve virar `repository`.
-- O pacote `extencions` possui erro de digitação e deve virar `extensions`.
-- Alguns textos ainda estão hardcoded nas telas e devem ir para `strings.xml`.
-- Ainda faltam testes unitários, testes de DAO e testes de UI.
-- Falta edição completa de orçamentos e recibos.
-- Falta vínculo formal entre recibo e orçamento de origem.
+A UI se comunica com ViewModels, sem acessar diretamente DAOs ou repositórios. Isso mantém as regras de negócio e o acesso aos dados separados das telas.
